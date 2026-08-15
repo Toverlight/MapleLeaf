@@ -1,0 +1,8 @@
+build/
+
+thirdparty/*/*
+
+!**/.gitkeep
+
+.zed/
+.cache/
