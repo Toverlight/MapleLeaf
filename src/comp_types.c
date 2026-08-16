@@ -24,7 +24,15 @@ CompId comp_id_fn(const char* name) {
 	return COMP_ID_INVALID;
 }
 CompId reg_comp_fn(const char* name, usize comp_size) {
+    if (!comp_size) [[clang::unlikely]] {
+        // TODO error: comp_size 不可以为 0
+        return COMP_ID_INVALID;
+    }
     CompId id = gen_comp_id(name);
+    if (id == COMP_ID_INVALID) [[clang::unlikely]] {
+        // TODO error: 组件id生成失败（可能是超出限制所致。如果有限制的话）
+        return COMP_ID_INVALID;
+    }
 	ptrdiff_t i = hmgeti(comp_type_reg, id);
 	if (i < 0) {
 	    CompType type = {
@@ -44,4 +52,26 @@ void maple_unreg_comp_all(void) {
         free(comp_type_reg[i].value.sparse_set);
         comp_type_reg[i].value.sparse_set = NULL;
     }
+}
+
+static Entity entity_available_pool[ENTITY_NUM_MAX]; // 空闲实体栈。TODO 初始化
+static usize next_available = 0; // 栈顶
+
+Entity maple_entity_next(void) {
+    if (next_available == ENTITY_NUM_MAX) [[clang::unlikely]] {
+         return ENTITY_INVALID;
+    }
+    return entity_available_pool[next_available++];
+}
+bool maple_entity_despawn(Entity e) {
+    for (isize i = 0; i < hmlen(comp_type_reg); i++) {
+        CompType* type = &comp_type_reg[i].value;
+        ecs_del(type, e, NULL);
+    }
+	if (next_available > 0) [[clang::likely]] {
+		entity_available_pool[--next_available] = e; // 回收实体
+		return true;
+	}
+	// TODO error:【固定次数日志】实体回收失败，预料之外的多余实体id
+	return false;
 }

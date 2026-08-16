@@ -1,4 +1,5 @@
 #include "sparse_set.h"
+#include "basic_types.h"
 #include "comp_types.h"
 #include <string.h>
 
