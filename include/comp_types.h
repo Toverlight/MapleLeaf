@@ -1,7 +1,7 @@
 #pragma once
 #include "basic_types.h"
 #include "sparse_set.h"
-#include <stdbool.h>
+#include "tools.h"
 
 typedef u32 CompId;
 #define COMP_ID_INVALID 0
@@ -34,3 +34,5 @@ void maple_unreg_comp_all(void);
 
 Entity maple_entity_next(void);
 bool maple_entity_despawn(Entity e);
+
+DECLARE_HACKER_COPIED(CompTypeReg, comp_type_reg);

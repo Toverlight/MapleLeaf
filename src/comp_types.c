@@ -3,8 +3,9 @@
 #include "stb_ds.h"
 #include <stdlib.h>
 
-static CompTypeReg comp_type_reg = NULL;
-static CompNameReg comp_name_reg = NULL;
+static CompTypeReg comp_type_reg = nullptr;
+IMPL_HACKER_COPIED(CompTypeReg, comp_type_reg);
+static CompNameReg comp_name_reg = nullptr;
 
 // 带缓存机制的组件ID生成器
 static CompId gen_comp_id(const char* name) {
@@ -48,9 +49,9 @@ CompId reg_comp_fn(const char* name, usize comp_size) {
 void maple_unreg_comp_all(void) {
     for (isize i = 0; i < hmlen(comp_type_reg); i++) {
         free(comp_type_reg[i].value.dense_set);
-        comp_type_reg[i].value.dense_set = NULL;
+        comp_type_reg[i].value.dense_set = nullptr;
         free(comp_type_reg[i].value.sparse_set);
-        comp_type_reg[i].value.sparse_set = NULL;
+        comp_type_reg[i].value.sparse_set = nullptr;
     }
 }
 
@@ -66,7 +67,7 @@ Entity maple_entity_next(void) {
 bool maple_entity_despawn(Entity e) {
     for (isize i = 0; i < hmlen(comp_type_reg); i++) {
         CompType* type = &comp_type_reg[i].value;
-        ecs_del(type, e, NULL);
+        ecs_del(type, e, nullptr);
     }
 	if (next_available > 0) [[clang::likely]] {
 		entity_available_pool[--next_available] = e; // 回收实体

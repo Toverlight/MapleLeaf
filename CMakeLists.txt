@@ -35,6 +35,7 @@ target_compile_definitions(maple_core PUBLIC
     "WIN_W=1920"
     "WIN_H=1080"
     "STB_DS_IMPLEMENTATION"
+    "DEBUG"
 )
 
 # ========== 链接 SDL3 ==========
