@@ -1,3 +1,4 @@
+#pragma once
 #define field_size_of(type, field) sizeof(((type*)0)->field)
 
 #define DECLARE_HACKER_ADDR(type, var_name) type* maple_hacker_addr_##var_name(void);
@@ -12,3 +13,15 @@ type maple_hacker_copied_##var_name(void) { \
 }
 #define HACKER_ADDR(var_name) maple_hacker_addr_##var_name()
 #define HACKER_COPIED(var_name) maple_hacker_copied_##var_name()
+
+#define WITH(obj, ...) \
+do { \
+    typeof(obj)* _obj_self = &(obj); \
+    __VA_ARGS__; \
+} while (0)
+
+#define WITH_COPIED(obj, ...) \
+do { \
+    typeof(obj) _obj_self = (obj); \
+    __VA_ARGS__; \
+} while (0)
