@@ -1,4 +1,12 @@
 #include "application.h"
+#include "comp_types.h"
+#include "event.h"
+
+static Application app;
+
+Application* app_get(void) {
+    return &app;
+}
 
 void maple_app_exit(Application* app) {
     arrfree(app->plugins);
@@ -7,6 +15,20 @@ void maple_app_exit(Application* app) {
     	arrfree(app->schedules[i]);
     }
     arrfree(app->schedules);
+    for (i32 i = 0; i < hmlen(app->system_sets); i++) {
+        arrfree(app->system_sets[i].value);
+    }
+    hmfree(app->system_sets);
+    arrfree(app->next_messages);
+    arrfree(app->current_messages);
+    for (i32 i = 0; i < hmlen(app->g_observer_reg); i++) {
+        arrfree(app->g_observer_reg[i].value);
+    }
+    hmfree(app->g_observer_reg);
+    maple_unreg_comp_all();
+    maple_unreg_msg_all();
+    maple_unreg_e_observer_all();
+    // TODO 可以统计结束时刻占用空间最后输出
 }
 
 void app_add_plugin_fn(Application* app, PluginFn plugin) {

@@ -2,7 +2,7 @@
 
 #include "basic_types.h"
 #include "stb_ds.h"
-#include "tools.h"
+#include "event.h"
 
 struct Application;
 typedef void(*PluginFn)(struct Application* app);
@@ -40,13 +40,16 @@ typedef struct Application {
 	PluginSet plugin_all; // 插件去重
 	SystemFn** schedules;
 	SystemSetMap system_sets;
+	Message* next_messages;
+	Message* current_messages;
+	G_ObserverReg g_observer_reg;
 	bool condition;
 } Application;
 
 #define APP_START(app_name, version, w_real, h_real, w_logic, h_logic) \
 int main(void) { \
-	Application _obj = (Application) { (app_name), (version), (w_real), (h_real), (w_logic), (h_logic), nullptr, nullptr, nullptr, true }; \
-	Application* _obj_self = &_obj; \
+	Application* _obj_self = app_get(); \
+	*_obj_self = (Application) { (app_name), (version), (w_real), (h_real), (w_logic), (h_logic), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
     for (i32 i = 0; i < arrlen(_obj_self->plugins); i++) { \
     	_obj_self->plugins[i](&app); \
     } \
@@ -58,6 +61,9 @@ int main(void) { \
 #define APP_END() \
 maple_app_exit(_obj_self); \
 return 0; }
+
+// 获取全局唯一app对象
+Application* app_get(void);
 
 void maple_app_exit(Application* app);
 
