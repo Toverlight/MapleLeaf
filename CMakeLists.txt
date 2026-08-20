@@ -19,6 +19,7 @@ set(STB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb")
 file(GLOB_RECURSE ENGINE_SOURCES
     CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.c"
 )
 add_library(maple_core STATIC ${ENGINE_SOURCES})
 

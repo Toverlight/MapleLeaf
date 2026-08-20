@@ -1,5 +1,5 @@
 #pragma once
-#include "sparse_set.h"
+#include "comp_types.h"
 #include "stb_ds.h"
 
 typedef u32 MsgId;
@@ -38,7 +38,7 @@ Message message_receive_fn(struct Application* app, const char* message_name);
 
 typedef u32 SigId;
 // TODO （示例信号，未实装）
-enum : i32 {
+enum : SigId {
 	SIG_INVALID = 0,
 
 	Sig_Button_Clicked,

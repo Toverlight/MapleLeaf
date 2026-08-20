@@ -113,7 +113,7 @@ bool query_execute(QueryIter* q_iter) {
 			#ifdef DEBUG
 			if (!cur) continue; // TODO 加条警告，未注册的组件id
 			#endif
-			if (ecs_has(cur->value.sparse_set, e)) {
+			if (maple_entity_has(cur->value.sparse_set, e)) {
 				arrput(ids, q_iter->select[j]);
 				arrput(results, cur->value.dense_set + cur->value.sparse_set[e] * cur->value.comp_size);
 				counter++;
@@ -126,7 +126,7 @@ bool query_execute(QueryIter* q_iter) {
 			if (!cur) continue; // TODO 加条警告，未注册的组件id
 			#endif
 			arrput(ids, q_iter->option[j]);
-			if (ecs_has(cur->value.sparse_set, e)) {
+			if (maple_entity_has(cur->value.sparse_set, e)) {
 				arrput(results, cur->value.dense_set + cur->value.sparse_set[e] * cur->value.comp_size);
 			} else {
 				arrput(results, nullptr);
@@ -141,7 +141,7 @@ bool query_execute(QueryIter* q_iter) {
 			#ifdef DEBUG
 			if (!cur) continue; // TODO 加条警告，未注册的组件id
 			#endif
-			if (!ecs_has(cur->value.sparse_set, e)) {
+			if (!maple_entity_has(cur->value.sparse_set, e)) {
 				filter_pass = false;
 				break;
 			}
@@ -153,7 +153,7 @@ bool query_execute(QueryIter* q_iter) {
 				#ifdef DEBUG
 				if (!cur) continue; // TODO 加条警告，未注册的组件id
 				#endif
-				if (!ecs_has(cur->value.sparse_set, e)) {
+				if (!maple_entity_has(cur->value.sparse_set, e)) {
 					filter_pass = false;
 					break;
 				}
@@ -191,7 +191,7 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 		#ifdef DEBUG
 		if (!cur) continue; // TODO 加条警告，未注册的组件id
 		#endif
-		if (ecs_has(cur->value.sparse_set, e)) {
+		if (maple_entity_has(cur->value.sparse_set, e)) {
 			arrput(ids, q_iter->select[j]);
 			arrput(results, cur->value.dense_set + cur->value.sparse_set[e] * cur->value.comp_size);
 		} else {
@@ -205,7 +205,7 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 		if (!cur) continue; // TODO 加条警告，未注册的组件id
 		#endif
 		arrput(ids, q_iter->option[j]);
-		if (ecs_has(cur->value.sparse_set, e)) {
+		if (maple_entity_has(cur->value.sparse_set, e)) {
 			arrput(results, cur->value.dense_set + cur->value.sparse_set[e] * cur->value.comp_size);
 		} else {
 			arrput(results, nullptr);
@@ -217,7 +217,7 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 		#ifdef DEBUG
 		if (!cur) continue; // TODO 加条警告，未注册的组件id
 		#endif
-		if (!ecs_has(cur->value.sparse_set, e)) {
+		if (!maple_entity_has(cur->value.sparse_set, e)) {
 			goto End;
 		}
 	}
@@ -227,7 +227,7 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 		#ifdef DEBUG
 		if (!cur) continue; // TODO 加条警告，未注册的组件id
 		#endif
-		if (!ecs_has(cur->value.sparse_set, e)) {
+		if (!maple_entity_has(cur->value.sparse_set, e)) {
 			goto End;
 		}
 	}

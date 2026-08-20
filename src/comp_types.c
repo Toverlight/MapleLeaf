@@ -1,7 +1,24 @@
 #include "comp_types.h"
-#include "sparse_set.h"
 #include "stb_ds.h"
 #include <stdlib.h>
+
+bool maple_entity_insert(CompType* type, const void* data, Entity e) {
+    if (maple_entity_has(type->sparse_set, e)) return false; // 一个实体最多拥有一个同种的组件
+	type->sparse_set[e] = type->dense_len;
+	void* dst = type->dense_set + type->dense_len * type->comp_size;
+	memcpy(dst, data, type->comp_size);
+	*((Entity*)dst) = e; // 更新所属实体字段
+	type->dense_len++;
+	return true;
+}
+bool maple_entity_remove(CompType* type, Entity e, void* out) {
+	if (!maple_entity_has(type->sparse_set, e)) return false;
+	if (out) memcpy(out, type->dense_set + type->sparse_set[e] * type->comp_size, type->comp_size);
+	type->dense_len--;
+	memcpy(type->dense_set + type->sparse_set[e] * type->comp_size, type->dense_set + type->dense_len * type->comp_size, type->comp_size);
+	type->sparse_set[e] = -1;
+	return true;
+}
 
 static CompTypeReg comp_type_reg = nullptr;
 IMPL_HACKER_COPIED(CompTypeReg, comp_type_reg);
@@ -82,7 +99,7 @@ Entity maple_entity_next(void) {
 bool maple_entity_despawn(Entity e) {
     for (isize i = 0; i < hmlen(comp_type_reg); i++) {
         CompType* type = &comp_type_reg[i].value;
-        ecs_del(type, e, nullptr);
+        maple_entity_remove(type, e, nullptr);
     }
 	if (next_available > 0) [[clang::likely]] {
 		entity_available_pool[--next_available] = e; // 回收实体
