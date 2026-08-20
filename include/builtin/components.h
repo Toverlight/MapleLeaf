@@ -9,3 +9,18 @@ DECLARE_COMP_BEGIN(Transform)
     f32 sx;
     f32 sy;
 DECLARE_COMP_END(Transform)
+
+typedef enum : u8 {
+    LAYOUT_INVALID,
+
+    Layout_HorizontalBox,
+    Layout_VerticalBox,
+
+    // TODO ...
+} Layout;
+
+DECLARE_COMP_BEGIN(Node)
+    u32 weight;
+    Layout layout;
+    // TODO ...
+DECLARE_COMP_END(Node)

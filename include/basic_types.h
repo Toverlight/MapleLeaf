@@ -14,3 +14,6 @@ typedef ptrdiff_t isize;
 typedef size_t usize;
 typedef float f32;
 typedef double f64;
+
+// 实体，即ID
+typedef u32 Entity;

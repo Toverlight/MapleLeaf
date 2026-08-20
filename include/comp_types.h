@@ -1,13 +1,13 @@
 #pragma once
 #include "basic_types.h"
+#include "command.h"
 #include "tools.h"
+#include "stb_ds.h"
 #include <string.h>
 
 typedef u32 CompId;
 #define COMP_ID_INVALID 0
 
-// 实体，即ID
-typedef u32 Entity;
 #define ENTITY_INVALID 0
 #define ENTITY_NUM_MAX 1024
 
@@ -39,11 +39,19 @@ void maple_unreg_comp_all(void);
 #define comp_id(comp_name) ((void)sizeof(comp_name), comp_id_fn(#comp_name))
 #define reg_comp(comp_name) ((void)sizeof(comp_name), reg_comp_fn(#comp_name, sizeof(comp_name)))
 
+Entity maple_entity_next(void);
+bool maple_entity_despawn(Entity e);
+
+DECLARE_HACKER_COPIED(CompTypeReg, comp_type_reg);
+
+
 #define DECLARE_COMP_BEGIN(comp_name) typedef struct comp_name { \
     Entity owner;
 #define DECLARE_COMP_END(comp_name) } comp_name; \
 bool maple_entity_insert_##comp_name(CompType* type, Entity e, const comp_name* comp); \
-bool maple_entity_remove_##comp_name(CompType* type, Entity e, comp_name* out);
+bool maple_entity_remove_##comp_name(CompType* type, Entity e, comp_name* out); \
+void ecmd_insert_##comp_name(struct EntityCommand* self, CompId comp_id, const comp_name* comp, bool* success); \
+void ecmd_remove_##comp_name(struct EntityCommand* self, CompId comp_id, comp_name* out, bool* success);
 
 // TODO 插入失败打印固定次数error日志
 #define IMPL_COMP(comp_name) \
@@ -70,9 +78,44 @@ bool maple_entity_remove_##comp_name(CompType* type, Entity e, comp_name* out) {
 	type->sparse_set[e] = -1; \
 	type->dense_len--; \
 	return true; \
+} \
+void ecmd_insert_##comp_name(struct EntityCommand* self, CompId comp_id, const comp_name* comp, bool* success) { \
+	if (!self->target) { \
+		if (success) *success = false; \
+		return; \
+	} \
+	CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg); \
+	isize i = hmgeti(comp_type_reg, comp_id); \
+	if (i >= 0) { \
+		CompType* type = &(comp_type_reg[i].value); \
+		if (maple_entity_insert_##comp_name(type, self->target, comp)) { \
+			if (success) *success = true; \
+		} else { \
+			if (success) *success = false; \
+		} \
+	} else { \
+		if (success) *success = false; \
+	} \
+	return; \
+} \
+void ecmd_remove_##comp_name(struct EntityCommand* self, CompId comp_id, comp_name* out, bool* success) { \
+	if (!self->target) { \
+		if (success) *success = false; \
+		return; \
+	} \
+	CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg); \
+	isize i = hmgeti(comp_type_reg, comp_id); \
+	if (i >= 0) { \
+		CompType* type = &(comp_type_reg[i].value); \
+		if (maple_entity_remove_##comp_name(type, self->target, out)) { \
+			if (success) *success = true; \
+		} else { \
+			if (success) *success = false; \
+		} \
+	} else { \
+		if (success) *success = false; \
+	} \
 }
 
-Entity maple_entity_next(void);
-bool maple_entity_despawn(Entity e);
-
-DECLARE_HACKER_COPIED(CompTypeReg, comp_type_reg);
+#define ecmd_insert(comp_name, comp_data, success) ecmd_insert_fn(_obj_self, comp_id(#comp_name), (comp_data), (success))
+#define ecmd_remove(comp_name, out, success) ecmd_remove_fn(_obj_self, comp_id(#comp_name), (out), (success))

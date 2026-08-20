@@ -1,5 +1,5 @@
 #pragma once
-#include "comp_types.h"
+#include "basic_types.h"
 #include "stb_ds.h"
 
 typedef u32 MsgId;

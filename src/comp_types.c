@@ -1,5 +1,4 @@
 #include "comp_types.h"
-#include "stb_ds.h"
 #include <stdlib.h>
 
 bool maple_entity_insert(CompType* type, const void* data, Entity e) {
