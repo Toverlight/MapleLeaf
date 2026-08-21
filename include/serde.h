@@ -5,6 +5,9 @@
 #include "tools.h"
 
 typedef u8* Stream;
+static inline void stream_close(Stream stream) {
+    arrfree(stream);
+}
 
 #define DECLARE_INTERFACE_Serde(type, prefix) \
 Stream prefix##_serialize_fn(struct type* obj); \
@@ -20,8 +23,10 @@ Stream prefix##_serialize_fn(struct type* obj) { \
 bool prefix##_deserialize_fn(struct type* obj, Stream stream) { \
     usize cursor = 0;
 #define IMPL_INTERFACE_Serde_Deserialize_END(type, prefix) \
+    stream_close(stream); \
     return true; \
 Fail: \
+    stream_close(stream); \
     return false; \
 }
 

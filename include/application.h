@@ -3,6 +3,7 @@
 #include "basic_types.h"
 #include "stb_ds.h"
 #include "event.h"
+#include "builtin/resources.h"
 
 struct Application;
 typedef void(*PluginFn)(struct Application* app);
@@ -92,8 +93,8 @@ do { \
 
 #define SCHEDULE_INTERVAL(phase) \
 do { \
-	static u64 _lastpoint = get_current_ns(); \
-	u64 _currentpoint = get_current_ns(); \
+	static u64 _lastpoint = get_ticks_ns(); \
+	u64 _currentpoint = get_ticks_ns(); \
 	SystemFn* systems = _obj_self->schedule[(phase)];\
 	while (_currentpoint - _lastpoint > get_fixed_ns()) { \
 		for (int i = 0; i < arrlen(systems); i++) { \
@@ -107,23 +108,24 @@ do { \
 do { \
 	_obj_self->condition = true; \
 	f64 _fps = (f64)(fps); \
-	if (_fps < 1 || _fps > 165) _fps = 120; \
-	const u64 nspf = 1.0 / _fps * RATIO_S_NS; \
+	if (_fps < 1) _fps = 165; \
+	const u64 nspf = RATIO_S_NS / _fps; \
 	res_set(Res_TimeFixed, nspf, nspf); \
 	res_set(Res_TimeFixed, mspf, (f64)nspf / RATIO_MS_NS); \
 	res_set(Res_TimeFixed, spf, (f64)nspf / RATIO_S_NS); \
 	SCHEDULE_GLOBAL(Startup); \
-	static u64 last = get_current_ns(); \
+	static u64 last = get_ticks_ns(); \
 	while (_obj_self->condition) { \
-		u64 current = get_current_ns(); \
-		res_set(Res_TimeDelta, dns, current - last); \
-		res_set(Res_TimeDelta, dms, (f64)get_delta_ns() / RATIO_MS_NS); \
-		res_set(Res_TimeDelta, ds, (f64)get_delta_ns() / RATIO_S_NS); \
+		u64 current = get_ticks_ns(); \
+		u64 delta_ns = current - last; \
+		res_set(Res_TimeDelta, dns, delta_ns); \
+		res_set(Res_TimeDelta, dms, (f64)delta_ns / RATIO_MS_NS); \
+		res_set(Res_TimeDelta, ds, (f64)delta_ns / RATIO_S_NS); \
 		SCHEDULE_FRAME(PreUpdate); \
 		SCHEDULE_INTERVAL(FixedUpdate); \
 		SCHEDULE_FRAME(Update); \
 		SCHEDULE_FRAME(PostUpdate); \
-		u64 elapsed = get_current_ns() - current; \
+		u64 elapsed = get_ticks_ns() - current; \
 		if (elapsed < get_fixed_ns()) { \
 			DELAY_NS(get_fixed_ns() - elapsed); \
 		} \

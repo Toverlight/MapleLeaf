@@ -1,6 +1,7 @@
 #include "application.h"
 #include "comp_types.h"
 #include "event.h"
+#include "timer.h"
 
 static Application app;
 
@@ -28,6 +29,7 @@ void maple_app_exit(Application* app) {
     maple_unreg_comp_all();
     maple_unreg_msg_all();
     maple_unreg_e_observer_all();
+    maple_unreg_timer_all();
     // TODO 可以统计结束时刻占用空间最后输出
 }
 

@@ -12,8 +12,9 @@ find_package(SDL3_image REQUIRED CONFIG)
 find_package(SDL3_ttf REQUIRED CONFIG)
 
 
-# ========== stb ==========
+# ========== thirdparty ==========
 set(STB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb")
+set(SDL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/sdl")
 
 # ========== 引擎核心 ==========
 file(GLOB_RECURSE ENGINE_SOURCES
@@ -25,6 +26,7 @@ add_library(maple_core STATIC ${ENGINE_SOURCES})
 
 target_include_directories(maple_core PUBLIC
     ${STB_DIR}
+    ${SDL_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 

@@ -1,4 +1,6 @@
 #pragma once
+#include <string.h>
+
 #define DECLARE_RESOURCE_BEGIN(res_name) typedef struct res_name {
 #define DECLARE_RESOURCE_END(res_name) } res_name; \
 void maple_res_init_##res_name(res_name res); \
