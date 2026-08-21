@@ -1,7 +1,7 @@
 #pragma once
 
 #include "comp_types.h"
-#include "serde.h"
+#include "traits/serde.h"
 
 DECLARE_COMP_BEGIN(Transform)
     f32 px;

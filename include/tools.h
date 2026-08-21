@@ -29,3 +29,5 @@ do { \
 #define DECLARE_INTERFACE(type, interface, prefix) DECLARE_INTERFACE_##interface(type, prefix)
 #define IMPL_INTERFACE_BEGIN(type, interface, prefix, trait) IMPL_INTERFACE_##interface##_##trait##_BEGIN(type, prefix)
 #define IMPL_INTERFACE_END(type, interface, prefix, trait) IMPL_INTERFACE_##interface##_##trait##_END(type, prefix)
+#define DEFINE_INTERFACE_BEGIN(type, interface, prefix) DEFINE_INTERFACE_##interface##_BEGIN(type, prefix)
+#define DEFINE_INTERFACE_END(type, interface, prefix) DEFINE_INTERFACE_##interface##_END(type, prefix)
