@@ -37,7 +37,7 @@ CompId reg_comp_fn(const char* name, usize comp_size);
 void maple_unreg_comp_all(void);
 
 #define comp_id(comp_name) ((void)sizeof(comp_name), comp_id_fn(#comp_name))
-#define reg_comp(comp_name) ((void)sizeof(comp_name), reg_comp_fn(#comp_name, sizeof(comp_name)))
+#define reg_comp(comp_name) reg_comp_fn(#comp_name, sizeof(comp_name))
 
 Entity maple_entity_next(void);
 bool maple_entity_despawn(Entity e);
