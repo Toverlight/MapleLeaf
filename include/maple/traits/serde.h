@@ -1,7 +1,7 @@
 #pragma once
 
-#include "basic_types.h"
-#include "stb_ds.h"
+#include <maple/basic_types.h>
+#include <stb_ds.h>
 
 typedef u8* Stream;
 static inline void stream_close(Stream stream) {

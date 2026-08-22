@@ -1,5 +1,5 @@
-#include "timer.h"
-#include "stb_ds.h"
+#include <maple/timer.h>
+#include <stb_ds.h>
 
 typedef struct {
 	const char* key;

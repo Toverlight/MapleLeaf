@@ -1,6 +1,6 @@
 #pragma once
 
-#include "basic_types.h"
+#include <maple/basic_types.h>
 
 // 'cmd' prefix
 typedef struct Command {

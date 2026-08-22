@@ -1,6 +1,6 @@
 #pragma once
 
-#include "builtin/resources.h"
+#include <maple/builtin/resources.h>
 
 struct Timer;
 typedef void(*TimerCallback)(const struct Timer* self, u64* interval_ns, void* data);

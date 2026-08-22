@@ -1,6 +1,6 @@
 #pragma once
-#include "basic_types.h"
-#include "comp_types.h"
+#include <maple/basic_types.h>
+#include <maple/comp_types.h>
 #include <stddef.h>
 typedef struct WaitCond {
 	CompId key; // 组件id

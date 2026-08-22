@@ -1,7 +1,7 @@
-#include "query.h"
-#include "comp_types.h"
-#include "stb_ds.h"
-#include "tools.h"
+#include <maple/query.h>
+#include <maple/comp_types.h>
+#include <stb_ds.h>
+#include <maple/tools.h>
 
 QueryIter query_create(const WaitCond* conds) {
 	return (QueryIter) {

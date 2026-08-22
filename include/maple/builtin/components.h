@@ -1,8 +1,8 @@
 #pragma once
 
-#include "comp_types.h"
-#include "traits/serde.h"
-#include "traits/default.h"
+#include <maple/comp_types.h>
+#include <maple/traits/serde.h>
+#include <maple/traits/default.h>
 
 // prefix 'transform'
 DECLARE_COMP_BEGIN(Transform)

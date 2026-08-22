@@ -1,6 +1,6 @@
 #pragma once
-#include "basic_types.h"
-#include "stb_ds.h"
+#include <maple/basic_types.h>
+#include <stb_ds.h>
 
 typedef u32 MsgId;
 #define MSG_ID_INVALID 0

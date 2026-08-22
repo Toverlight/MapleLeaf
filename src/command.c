@@ -1,5 +1,5 @@
-#include "command.h"
-#include "comp_types.h"
+#include <maple/command.h>
+#include <maple/comp_types.h>
 
 // TODO multi-command configuration & multi-thread support
 Command command;

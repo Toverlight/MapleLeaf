@@ -1,9 +1,9 @@
 #pragma once
 
-#include "basic_types.h"
-#include "stb_ds.h"
-#include "event.h"
-#include "builtin/resources.h"
+#include <maple/basic_types.h>
+#include <stb_ds.h>
+#include <maple/event.h>
+#include <maple/builtin/resources.h>
 
 struct Application;
 typedef void(*PluginFn)(struct Application* app);

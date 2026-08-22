@@ -1,8 +1,8 @@
 #pragma once
-#include "basic_types.h"
-#include "command.h"
-#include "tools.h"
-#include "stb_ds.h"
+#include <maple/basic_types.h>
+#include <maple/command.h>
+#include <maple/tools.h>
+#include <stb_ds.h>
 #include <string.h>
 
 typedef u32 CompId;

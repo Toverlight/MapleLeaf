@@ -1,5 +1,5 @@
-#include "builtin/components.h"
-#include "stb_ds.h"
+#include <maple/builtin/components.h>
+#include <stb_ds.h>
 
 IMPL_COMP(Transform)
 

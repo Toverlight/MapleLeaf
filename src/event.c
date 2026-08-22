@@ -1,5 +1,5 @@
-#include "event.h"
-#include "application.h"
+#include <maple/event.h>
+#include <maple/application.h>
 
 static MsgNameReg msg_name_reg = nullptr;
 

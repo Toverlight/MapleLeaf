@@ -1,7 +1,7 @@
-#include "default_plugin.h"
-#include "application.h"
-#include "builtin/components.h"
-#include "comp_types.h"
+#include <maple/default_plugin.h>
+#include <maple/application.h>
+#include <maple/builtin/components.h>
+#include <maple/comp_types.h>
 
 void maple_df_message_buf_swapper(void) {
 	Application* app = app_get();

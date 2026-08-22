@@ -1,8 +1,8 @@
 #pragma once
 
-#include "resource.h"
-#include "basic_types.h"
-#include "SDL.h"
+#include <maple/resource.h>
+#include <maple/basic_types.h>
+#include <SDL.h>
 
 DECLARE_RESOURCE_BEGIN(Res_TimeFixed)
 	u64 nspf;

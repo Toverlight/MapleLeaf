@@ -1,7 +1,7 @@
-#include "application.h"
-#include "comp_types.h"
-#include "event.h"
-#include "timer.h"
+#include <maple/application.h>
+#include <maple/comp_types.h>
+#include <maple/event.h>
+#include <maple/timer.h>
 
 static Application app;
 
