@@ -63,3 +63,21 @@ DEFINE_INTERFACE_END(Node, Default, node)
 bool node_add_child(Node* node, Node* child);
 bool node_remove_child(Node* node, Node* child);
 bool node_set_parent(Node* node, Node* parent);
+
+typedef enum : u8 {
+    BtnState_Idle,
+    BtnState_Hovered,
+    BtnState_Pressed,
+} BtnState;
+
+typedef void(*BtnCallback)(void);
+
+// prefix 'btn'
+DECLARE_COMP_BEGIN(Button)
+    BtnState state;
+    BtnCallback callback;
+DECLARE_COMP_END(Button)
+DEFINE_INTERFACE_BEGIN(Button, Default, btn)
+    btn_df.state = BtnState_Idle;
+    btn_df.callback = nullptr;
+DEFINE_INTERFACE_END(Button, Default, btn)

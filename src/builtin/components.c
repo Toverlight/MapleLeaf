@@ -58,3 +58,5 @@ bool node_set_parent(Node* node, Node* parent) {
     }
     return true;
 }
+
+IMPL_COMP(Button)

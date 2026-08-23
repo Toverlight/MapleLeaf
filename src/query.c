@@ -25,11 +25,15 @@ void query_init(QueryIter* q_iter) {
 	}
 }
 
-QueryTarget query_next(QueryIter* q_iter) {
-	if (!q_iter->stride || q_iter->i >= arrlen(q_iter->results)) return nullptr;
-	QueryTarget res = q_iter->results[q_iter->i];
+bool query_next(QueryIter* q_iter, QueryTarget* target) {
+	if (!q_iter->stride || q_iter->i >= arrlen(q_iter->results)) {
+	    // TODO error: 没stride可能是没初始化
+	    *target = nullptr;
+	    return false;
+	}
+	*target = q_iter->results[q_iter->i];
 	q_iter->i += q_iter->stride;
-	return res;
+	return *target ? true : false;
 }
 i32 maple_query_id_offset(QueryIter* q_iter, const char* comp_name) {
 	CompId id = comp_id_fn(comp_name);
@@ -40,7 +44,7 @@ i32 maple_query_id_offset(QueryIter* q_iter, const char* comp_name) {
 	return -1;
 }
 void* query_fetch(QueryTarget target, i32 offset) {
-	if (!target || offset < 0) return nullptr;
+	if (!target || offset < 0) return nullptr; // TODO error: target为空 或 query未初始化 或 query未执行
 	return target + offset;
 }
 

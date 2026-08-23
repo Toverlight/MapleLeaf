@@ -37,12 +37,17 @@ Message message_receive_fn(struct Application* app, const char* message_name);
 
 
 typedef u32 SigId;
-// TODO （示例信号，未实装）
+
 enum : SigId {
 	SIG_INVALID = 0,
 
+	// TODO 鼠标按钮事件的实际触发（待SDL接入）
+	Sig_MouseButton_Pressed,
+	Sig_MouseButton_Released,
+	Sig_MouseButton_Moved,
+
+	// TODO （示例信号，未实装）
 	Sig_Button_Clicked,
-	Sig_Button_Hovered,
 	Sig_Button_Entered,
 	Sig_Button_Exited,
 

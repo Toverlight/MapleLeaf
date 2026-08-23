@@ -17,3 +17,8 @@ typedef double f64;
 
 // 实体，即ID
 typedef u32 Entity;
+
+typedef struct Vec2 {
+    f32 x;
+    f32 y;
+} Vec2;

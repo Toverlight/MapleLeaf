@@ -37,4 +37,4 @@ do { \
 #define res_get_full(res_name) maple_res_get_##res_name()
 #define res_get_full_addr(res_name) maple_res_get_addr_##res_name()
 
-#define res_reg(res_name, res) maple_res_init_##res_name(res)
+#define reg_res(res_name, res) maple_res_init_##res_name(res)

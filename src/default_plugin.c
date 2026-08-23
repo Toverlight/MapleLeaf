@@ -1,6 +1,10 @@
+#include "maple/basic_types.h"
+#include <maple/checker.h>
+#include <maple/query.h>
 #include <maple/default_plugin.h>
 #include <maple/application.h>
 #include <maple/builtin/components.h>
+#include <maple/builtin/resources.h>
 #include <maple/comp_types.h>
 
 void maple_df_message_buf_swapper(void) {
@@ -82,11 +86,53 @@ void maple_df_node_computer(void) {
     }
 }
 
+void maple_df_btn_processor(void) {
+    QueryIter query = QUERY(
+        Q_SELECT(Button),
+        Q_SELECT(Node)
+    );
+    QUERY_INIT(&query);
+    Q_EXEC(&query);
+    QueryTarget target;
+    while (Q_NEXT(&query, &target)) {
+        Button* button = (Button*)Q_FETCH(&query, target, Button);
+        Node* node = (Node*)Q_FETCH(&query, target, Node);
+
+        // TODO 按钮 检测 鼠标
+        const Res_InputMouse* res_input_mouse = res_get_full_addr(Res_InputMouse);
+        ComputedNode* computed = &node->computed;
+        bool in_bound = check_if_point_in_rect(
+            (Vec2){computed->half_width, computed->half_height},
+            (Vec2){computed->center_x, computed->center_y},
+            (Vec2){res_input_mouse->x, res_input_mouse->y}
+        );
+        if (in_bound) {
+            if (res_input_mouse->buttons[MouseButton_Left]) {
+                button->state = BtnState_Pressed;
+            } else {
+                button->state = BtnState_Hovered;
+                if (res_input_mouse->last_buttons[MouseButton_Left]) {
+                    if (button->callback) button->callback();
+                }
+            }
+        } else {
+            button->state = BtnState_Idle;
+        }
+    }
+    QUERY_FREE(&query);
+}
+
 // 默认插件
 void default_plugin(struct Application* app) {
+    reg_res(Res_TimeFixed, res_time_fixed_default_fn());
+    reg_res(Res_TimeDelta, res_time_delta_default_fn());
+    reg_res(Res_InputMouse, res_input_mouse_default_fn());
+
     reg_comp(Transform);
     reg_comp(Node);
+    reg_comp(Button);
 
 	arrins(app->schedules[PreUpdate], 0, maple_df_message_buf_swapper); // 注册消息缓冲区交换系统
 	arrput(app->schedules[PostUpdate], maple_df_node_computer); // 注册节点实际属性计算系统
+	arrput(app->schedules[PostUpdate], maple_df_btn_processor); // 注册按钮处理系统
 }

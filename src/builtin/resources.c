@@ -2,3 +2,5 @@
 
 IMPL_RESOURCE(Res_TimeFixed)
 IMPL_RESOURCE(Res_TimeDelta)
+
+IMPL_RESOURCE(Res_InputMouse)

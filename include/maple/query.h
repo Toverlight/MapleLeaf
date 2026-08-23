@@ -38,28 +38,28 @@ typedef struct QueryIter {
 QueryIter query_create(const WaitCond* conds);
 
 #define Q_SELECT(comp_name) \
-	(WaitCond) {COMP_ID(#comp_name), offsetof(QueryIter, select)}
+	(WaitCond) {comp_id(comp_name), offsetof(QueryIter, select)}
 
 #define Q_OPTION(comp_name) \
-	(WaitCond) {COMP_ID(#comp_name), offsetof(QueryIter, option)}
+	(WaitCond) {comp_id(comp_name), offsetof(QueryIter, option)}
 
 #define Q_WITH(comp_name) \
-	(WaitCond) {COMP_ID(#comp_name), offsetof(QueryIter, with)}
+	(WaitCond) {comp_id(comp_name), offsetof(QueryIter, with)}
 
 #define Q_WITHOUT(comp_name) \
-	(WaitCond) {COMP_ID(#comp_name), offsetof(QueryIter, without)}
+	(WaitCond) {comp_id(comp_name), offsetof(QueryIter, without)}
 
 #define QUERY(...) \
-	query_iter_create((const WaitCond*) {__VA_ARGS__, (WaitCond){COMP_ID_INVALID, 0}})
+	query_create((const WaitCond[]) {__VA_ARGS__, (WaitCond){COMP_ID_INVALID, 0}})
 
 void query_init(QueryIter* q_iter);
 #define QUERY_INIT(q_iter) query_init(q_iter)
 
-QueryTarget query_next(QueryIter* q_iter);
+bool query_next(QueryIter* q_iter, QueryTarget* target);
 i32 maple_query_id_offset(QueryIter* q_iter, const char* comp_name); // 返回-1代表非法
 void* query_fetch(QueryTarget target, i32 offset);
 
-#define Q_NEXT(q_iter) query_next(q_iter)
+#define Q_NEXT(q_iter, target) query_next(q_iter, target)
 #define Q_FETCH(q_iter, target, comp_name) \
 ({ \
 	static i32 _offset = -2; \
