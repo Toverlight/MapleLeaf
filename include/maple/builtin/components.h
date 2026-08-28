@@ -3,6 +3,7 @@
 #include <maple/comp_types.h>
 #include <maple/traits/serde.h>
 #include <maple/traits/default.h>
+#include <maple/builtin/sdl3_layer.h>
 
 // prefix 'transform'
 DECLARE_COMP_BEGIN(Transform)
@@ -44,25 +45,45 @@ DEFINE_INTERFACE_BEGIN(ComputedNode, Default, cnode)
     cnode_df.center_y = 0.0f;
 DEFINE_INTERFACE_END(ComputedNode, Default, cnode)
 
+typedef struct ColorRgba {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} ColorRgba;
+
 // prefix 'node'
 DECLARE_COMP_BEGIN(Node)
+    ComputedNode computed;
     struct Node* parent;
     struct Node** children;
     u32 weight;
     Layout layout;
-    ComputedNode computed;
+    f32 preferred_half_width;
+    f32 preferred_half_height;
+    // font
+    const utf8* font_name;
+    u32 font_height;
+    ColorRgba font_forecolor;
+
     // TODO ...
 DECLARE_COMP_END(Node)
 DEFINE_INTERFACE_BEGIN(Node, Default, node)
+    node_df.computed = cnode_default_fn();
     node_df.parent = nullptr;
     node_df.children = nullptr;
     node_df.weight = 1;
     node_df.layout = LAYOUT_INVALID;
-    node_df.computed = cnode_default_fn();
+    node_df.preferred_half_width = 0.0f;
+    node_df.preferred_half_height = 0.0f;
+    node_df.font_name = nullptr;
+    node_df.font_height = 12;
+    node_df.font_forecolor = (ColorRgba){0,0,0,0};
 DEFINE_INTERFACE_END(Node, Default, node)
 bool node_add_child(Node* node, Node* child);
 bool node_remove_child(Node* node, Node* child);
 bool node_set_parent(Node* node, Node* parent);
+void maple_node_free(void* comp);
 
 typedef enum : u8 {
     BtnState_Idle,
@@ -81,3 +102,41 @@ DEFINE_INTERFACE_BEGIN(Button, Default, btn)
     btn_df.state = BtnState_Idle;
     btn_df.callback = nullptr;
 DEFINE_INTERFACE_END(Button, Default, btn)
+
+// prefix 'ctext'
+// TODO ComputedText的尺寸之后再提供更新方式（width,height是否必要尚不确定)
+typedef struct ComputedText {
+    TextureHandle* textures;
+    f32 half_width;
+    f32 half_height;
+} ComputedText;
+DEFINE_INTERFACE_BEGIN(ComputedText, Default, ctext)
+    ctext_df.textures = nullptr;
+    ctext_df.half_width = 0.0f;
+    ctext_df.half_height = 0.0f;
+DEFINE_INTERFACE_END(ComputedText, Default, ctext)
+
+// prefix 'text'
+DECLARE_COMP_BEGIN(Text)
+    ComputedText computed;
+    const utf8* content;
+    bool content_changed;
+    bool size_changed;
+DECLARE_COMP_END(Text)
+DEFINE_INTERFACE_BEGIN(Text, Default, text)
+    text_df.computed = ctext_default_fn();
+    text_df.content = nullptr;
+    text_df.content_changed = false;
+DEFINE_INTERFACE_END(Text, Default, text)
+// Text的content修改须通过该方法，以确保纹理tiles被正常更新
+static inline void text_set_content(Text* text, const utf8* utf8_string) {
+    text->content = utf8_string;
+    text->content_changed = true;
+}
+// 有内容的Text初始化须通过该方法，以确保纹理tiles被正常更新
+static inline Text text_new(const utf8* utf8_string) {
+    Text text = text_default_fn();
+    text_set_content(&text, utf8_string);
+    return text;
+}
+void maple_text_free(void* comp);

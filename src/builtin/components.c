@@ -58,5 +58,17 @@ bool node_set_parent(Node* node, Node* parent) {
     }
     return true;
 }
+void maple_node_free(void* comp) {
+    Node* node = (Node*)comp;
+    arrfree(node->parent);
+    arrfree(node->children);
+}
 
 IMPL_COMP(Button)
+
+IMPL_COMP(Text)
+
+void maple_text_free(void* comp) {
+    Text* text = (Text*)comp;
+    arrfree(text->computed.textures);
+}

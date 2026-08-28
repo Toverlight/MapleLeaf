@@ -4,6 +4,7 @@
 #include <stb_ds.h>
 #include <maple/event.h>
 #include <maple/builtin/resources.h>
+#include <SDL.h>
 
 struct Application;
 typedef void(*PluginFn)(struct Application* app);
@@ -33,6 +34,7 @@ typedef struct SystemSetEntry {
 typedef struct Application {
 	const char* name;
 	const char* version;
+	const char* app_identifier;
 	int w_real;
 	int h_real;
 	int w_logic;
@@ -47,10 +49,14 @@ typedef struct Application {
 	bool condition;
 } Application;
 
-#define APP_START(app_name, version, w_real, h_real, w_logic, h_logic) \
+#define APP_START(app_name, version, app_identifier, w_real, h_real, w_logic, h_logic) \
 int main(void) { \
+    SDL_SetAppMetadata(#app_name, #version, #app_identifier); \
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) { \
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Init failed: %s", SDL_GetError()); \
+	} \
 	Application* _obj_self = app_get(); \
-	*_obj_self = (Application) { (app_name), (version), (w_real), (h_real), (w_logic), (h_logic), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
+	*_obj_self = (Application) { (app_name), (version), (app_identifier), (w_real), (h_real), (w_logic), (h_logic), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
     for (i32 i = 0; i < arrlen(_obj_self->plugins); i++) { \
     	_obj_self->plugins[i](&app); \
     } \
@@ -60,6 +66,7 @@ int main(void) { \
     } \
 
 #define APP_END() \
+SDL_Quit(); \
 maple_app_exit(_obj_self); \
 return 0; }
 

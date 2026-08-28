@@ -1,4 +1,4 @@
-#include "maple/basic_types.h"
+#include <maple/basic_types.h>
 #include <maple/checker.h>
 #include <maple/query.h>
 #include <maple/default_plugin.h>
@@ -6,6 +6,7 @@
 #include <maple/builtin/components.h>
 #include <maple/builtin/resources.h>
 #include <maple/comp_types.h>
+#include <maple/builtin/sdl3_layer.h>
 
 void maple_df_message_buf_swapper(void) {
 	Application* app = app_get();
@@ -47,6 +48,14 @@ static void maple_update_vertical_box(Node* node) {
     }
 }
 
+static void maple_update_none_layout(Node* node) {
+    ComputedNode* computed = &node->computed;
+    if (computed->half_width < 1e-2f || computed->half_height < 1e-2f) {
+        computed->half_width = node->preferred_half_width;
+        computed->half_height = node->preferred_half_height;
+    }
+}
+
 static void maple_node_update_tree(Node* root) {
     Node** nodes = nullptr;
     arrput(nodes, root);
@@ -61,7 +70,7 @@ static void maple_node_update_tree(Node* root) {
                 maple_update_vertical_box(nodes[i]);
                 break;
             default: // 默认，即无布局 或 暂未实装的布局
-                // TODO 后续添加 prefered，控制特殊节点的属性。目前根节点要手动设置 computed
+                maple_update_none_layout(nodes[i]);
                 break;
         }
         // -------
@@ -98,7 +107,6 @@ void maple_df_btn_processor(void) {
         Button* button = (Button*)Q_FETCH(&query, target, Button);
         Node* node = (Node*)Q_FETCH(&query, target, Node);
 
-        // TODO 按钮 检测 鼠标
         const Res_InputMouse* res_input_mouse = res_get_full_addr(Res_InputMouse);
         ComputedNode* computed = &node->computed;
         bool in_bound = check_if_point_in_rect(
@@ -122,17 +130,53 @@ void maple_df_btn_processor(void) {
     QUERY_FREE(&query);
 }
 
+// TODO 渲染阶段的textures按顺序渲染
+void maple_df_text_tile_updater(void) {
+    QueryIter query = QUERY(
+        Q_SELECT(Text),
+        Q_SELECT(Node)
+    );
+    QUERY_INIT(&query);
+    Q_EXEC(&query);
+    QueryTarget target;
+    while (Q_NEXT(&query, &target)) {
+        Text* text = (Text*)Q_FETCH(&query, target, Text);
+        Node* node = (Node*)Q_FETCH(&query, target, Node);
+
+        // FIXME 尺寸可能还受其他属性控制
+        if (text->computed.half_width == node->computed.half_width
+        || text->computed.half_height == node->computed.half_height) {
+            text->size_changed = false;
+        } else {
+            text->computed.half_width = node->computed.half_width;
+            text->computed.half_height = node->computed.half_height;
+            text->size_changed = true;
+        }
+
+        if (text->content_changed || text->size_changed) {
+            arrsetlen(text->computed.textures, 0);
+            Utf8TileItem item = (Utf8TileItem) { .textures = text->computed.textures, .font_height = node->font_height };
+            utf8_iter_string(text->content, maple_load_utf8_tile, &item);
+            text->content_changed = false;
+            text->size_changed = false;
+        }
+    }
+    QUERY_FREE(&query);
+}
+
 // 默认插件
 void default_plugin(struct Application* app) {
     reg_res(Res_TimeFixed, res_time_fixed_default_fn());
     reg_res(Res_TimeDelta, res_time_delta_default_fn());
     reg_res(Res_InputMouse, res_input_mouse_default_fn());
 
-    reg_comp(Transform);
-    reg_comp(Node);
-    reg_comp(Button);
+    reg_comp(Transform, nullptr);
+    reg_comp(Node, maple_node_free);
+    reg_comp(Button, nullptr);
+    reg_comp(Text, maple_text_free);
 
 	arrins(app->schedules[PreUpdate], 0, maple_df_message_buf_swapper); // 注册消息缓冲区交换系统
 	arrput(app->schedules[PostUpdate], maple_df_node_computer); // 注册节点实际属性计算系统
 	arrput(app->schedules[PostUpdate], maple_df_btn_processor); // 注册按钮处理系统
+	arrput(app->schedules[PostUpdate], maple_df_text_tile_updater); // 注册文本更新系统
 }

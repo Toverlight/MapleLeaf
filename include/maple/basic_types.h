@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <uchar.h>
+
+// C23标准有但是mingw尚未跟上的char8_t，在这里定义。之后标准库header更新后也不用动，因为C11起允许重复typedef定义同一类型。
+typedef unsigned char char8_t;
 
 typedef int8_t i8;
 typedef uint8_t u8;
@@ -14,6 +18,8 @@ typedef ptrdiff_t isize;
 typedef size_t usize;
 typedef float f32;
 typedef double f64;
+// 注意，该类型在utf8时表示utf8码元（一个字节），而完整的字符/字符串都需要用utf8[]或utf8*表示
+typedef char8_t utf8;
 
 // 实体，即ID
 typedef u32 Entity;

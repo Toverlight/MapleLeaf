@@ -11,11 +11,14 @@ typedef u32 CompId;
 #define ENTITY_INVALID 0
 #define ENTITY_NUM_MAX 1024
 
+typedef void(*CompFreeFn)(void* comp);
+
 typedef struct CompType {
 	void* dense_set;
 	u32 dense_len;
 	i32* sparse_set;
 	usize comp_size;
+	CompFreeFn free_fn;
 } CompType;
 typedef struct CompTypeEntry {
 	CompId key;
@@ -33,11 +36,11 @@ bool maple_entity_insert(struct CompType* type, const void* data, Entity e);
 bool maple_entity_remove(struct CompType* type, Entity e, void* out);
 
 CompId comp_id_fn(const char* name);
-CompId reg_comp_fn(const char* name, usize comp_size);
+CompId reg_comp_fn(const char* name, usize comp_size, CompFreeFn free_fn);
 void maple_unreg_comp_all(void);
 
 #define comp_id(comp_name) ((void)sizeof(comp_name), comp_id_fn(#comp_name))
-#define reg_comp(comp_name) reg_comp_fn(#comp_name, sizeof(comp_name))
+#define reg_comp(comp_name, free_fn) reg_comp_fn(#comp_name, sizeof(comp_name), free_fn)
 
 Entity maple_entity_next(void);
 bool maple_entity_despawn(Entity e);

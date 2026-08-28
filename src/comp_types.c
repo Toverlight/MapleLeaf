@@ -13,6 +13,7 @@ bool maple_entity_insert(CompType* type, const void* data, Entity e) {
 bool maple_entity_remove(CompType* type, Entity e, void* out) {
 	if (!maple_entity_has(type->sparse_set, e)) return false;
 	if (out) memcpy(out, type->dense_set + type->sparse_set[e] * type->comp_size, type->comp_size);
+	type->free_fn(type->dense_set + type->sparse_set[e] * type->comp_size);
 	type->dense_len--;
 	memcpy(type->dense_set + type->sparse_set[e] * type->comp_size, type->dense_set + type->dense_len * type->comp_size, type->comp_size);
 	type->sparse_set[e] = -1;
@@ -42,7 +43,7 @@ CompId comp_id_fn(const char* name) {
 	return COMP_ID_INVALID;
 }
 
-CompId reg_comp_fn(const char* name, usize comp_size) {
+CompId reg_comp_fn(const char* name, usize comp_size, CompFreeFn free_fn) {
     if (!comp_size) [[clang::unlikely]] {
         // TODO error: comp_size 不可以为 0
         return COMP_ID_INVALID;
@@ -63,7 +64,8 @@ CompId reg_comp_fn(const char* name, usize comp_size) {
 			.dense_set = malloc(ENTITY_NUM_MAX * comp_size),
 			.dense_len = 0,
 			.sparse_set = malloc(ENTITY_NUM_MAX * sizeof(i32)),
-			.comp_size = comp_size
+			.comp_size = comp_size,
+			.free_fn = free_fn
 		};
 		hmput(comp_type_reg, id, type);
 	} else [[clang::unlikely]] {
@@ -74,6 +76,9 @@ CompId reg_comp_fn(const char* name, usize comp_size) {
 
 void maple_unreg_comp_all(void) {
     for (isize i = 0; i < hmlen(comp_type_reg); i++) {
+        for (isize j = 0; j < comp_type_reg[i].value.dense_len; j++) {
+            comp_type_reg[i].value.free_fn(comp_type_reg[i].value.dense_set + j * comp_type_reg[i].value.comp_size);
+        }
         free(comp_type_reg[i].value.dense_set);
         comp_type_reg[i].value.dense_set = nullptr;
         free(comp_type_reg[i].value.sparse_set);

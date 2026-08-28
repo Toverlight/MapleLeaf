@@ -62,6 +62,7 @@ void* query_fetch(QueryTarget target, i32 offset);
 #define Q_NEXT(q_iter, target) query_next(q_iter, target)
 #define Q_FETCH(q_iter, target, comp_name) \
 ({ \
+    (void)sizeof(comp_name); \
 	static i32 _offset = -2; \
 	if (_offset == -2) _offset = maple_query_id_offset(q_iter, #comp_name); \
 	query_fetch(target, _offset); \
