@@ -2,6 +2,7 @@
 #include <maple/comp_types.h>
 #include <stb_ds.h>
 #include <maple/tools.h>
+#include <maple/builtin/sdl3_layer.h>
 
 QueryIter query_create(const WaitCond* conds) {
 	return (QueryIter) {
@@ -26,10 +27,15 @@ void query_init(QueryIter* q_iter) {
 }
 
 bool query_next(QueryIter* q_iter, QueryTarget* target) {
-	if (!q_iter->stride || q_iter->i >= arrlen(q_iter->results)) {
-	    // TODO error: 没stride可能是没初始化
+	if (!q_iter->stride) {
+	    // 没stride可能是没初始化
+		LOG_ERROR_LIMITED(20, u8"Query may not be initialized: iter stride is 0");
 	    *target = nullptr;
 	    return false;
+	}
+	if (q_iter->i >= arrlen(q_iter->results)) {
+	    *target = nullptr;
+		return false;
 	}
 	*target = q_iter->results[q_iter->i];
 	q_iter->i += q_iter->stride;
@@ -44,7 +50,11 @@ i32 maple_query_id_offset(QueryIter* q_iter, const char* comp_name) {
 	return -1;
 }
 void* query_fetch(QueryTarget target, i32 offset) {
-	if (!target || offset < 0) return nullptr; // TODO error: target为空 或 query未初始化 或 query未执行
+	if (!target || offset < 0) {
+	     // target为空 或 query未初始化 或 query未执行
+	    LOG_ERROR_LIMITED(20, u8"Failed to fetch: target may be nullptr or query hasn't executed");
+	    return nullptr;
+	}
 	return target + offset;
 }
 
@@ -73,7 +83,9 @@ static const CompType* find_shortest_comp_arr(QueryIter* q_iter, usize* i_out, b
 				type = cur;
 				*i_out = i;
 			}
-		} // TODO else error log
+		} else {
+		    LOG_ERROR_LIMITED(50, u8"Component with id '%d' has not been registered", q_iter->select[i]);
+		}
 	}
 	for (isize i = 0; i < arrlen(q_iter->with); i++) {
 		if (!type) type = hmgetp_null(comp_type_reg, q_iter->with[i]);
@@ -84,7 +96,9 @@ static const CompType* find_shortest_comp_arr(QueryIter* q_iter, usize* i_out, b
 				is_select = false;
 				*i_out = i;
 			}
-		} // TODO else error log
+		} else {
+		    LOG_ERROR_LIMITED(50, u8"Component with id '%d' has not been registered", q_iter->select[i]);
+		}
 	}
 	*is_select_out = is_select;
 	return &type->value;
@@ -94,7 +108,10 @@ bool query_execute(QueryIter* q_iter) {
 	bool is_outer_select;
 	usize outer_i;
 	const CompType* type = find_shortest_comp_arr(q_iter, &outer_i, &is_outer_select);
-	if (!type) return false; // 可能因为QueryIter没被初始化
+	if (!type) {
+	    LOG_ERROR_LIMITED(20, u8"Shortest comp type is null, please make sure the comps are registered and query has been initialized");
+		return false;
+	}
 	hmfree(q_iter->offsets); // 清除可能的脏数据
 	arrfree(q_iter->results);
 	QueryTarget* results = nullptr;
@@ -115,7 +132,10 @@ bool query_execute(QueryIter* q_iter) {
 			if (is_outer_select && outer_i == j) continue;
 			CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->select[j]);
 			#ifdef DEBUG
-			if (!cur) continue; // TODO 加条警告，未注册的组件id
+			if (!cur) {
+			    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->select[j]);
+			    continue;
+			}
 			#endif
 			if (maple_entity_has(cur->value.sparse_set, e)) {
 				arrput(ids, q_iter->select[j]);
@@ -127,7 +147,10 @@ bool query_execute(QueryIter* q_iter) {
 		for (i32 j = 0; j < arrlen(q_iter->option); j++) {
 			CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->option[j]);
 			#ifdef DEBUG
-			if (!cur) continue; // TODO 加条警告，未注册的组件id
+			if (!cur) {
+			    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->option[j]);
+			    continue;
+			}
 			#endif
 			arrput(ids, q_iter->option[j]);
 			if (maple_entity_has(cur->value.sparse_set, e)) {
@@ -143,7 +166,10 @@ bool query_execute(QueryIter* q_iter) {
 			if (!is_outer_select && outer_i == j) continue;
 			CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->with[j]);
 			#ifdef DEBUG
-			if (!cur) continue; // TODO 加条警告，未注册的组件id
+			if (!cur) {
+			    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->with[j]);
+			    continue;
+			}
 			#endif
 			if (!maple_entity_has(cur->value.sparse_set, e)) {
 				filter_pass = false;
@@ -155,7 +181,10 @@ bool query_execute(QueryIter* q_iter) {
 			for (i32 j = 0; j < arrlen(q_iter->without); j++) {
 				CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->without[j]);
 				#ifdef DEBUG
-				if (!cur) continue; // TODO 加条警告，未注册的组件id
+				if (!cur) {
+				    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->without[j]);
+				    continue;
+				}
 				#endif
 				if (!maple_entity_has(cur->value.sparse_set, e)) {
 					filter_pass = false;
@@ -193,7 +222,10 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 	for (i32 j = 0; j < arrlen(q_iter->select); j++) {
 		CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->select[j]);
 		#ifdef DEBUG
-		if (!cur) continue; // TODO 加条警告，未注册的组件id
+		if (!cur) {
+		    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->select[j]);
+		    continue;
+		}
 		#endif
 		if (maple_entity_has(cur->value.sparse_set, e)) {
 			arrput(ids, q_iter->select[j]);
@@ -206,7 +238,10 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 	for (i32 j = 0; j < arrlen(q_iter->option); j++) {
 		CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->option[j]);
 		#ifdef DEBUG
-		if (!cur) continue; // TODO 加条警告，未注册的组件id
+		if (!cur) {
+		    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->option[j]);
+		    continue;
+		}
 		#endif
 		arrput(ids, q_iter->option[j]);
 		if (maple_entity_has(cur->value.sparse_set, e)) {
@@ -219,7 +254,10 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 	for (i32 j = 0; j < arrlen(q_iter->with); j++) {
 		CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->with[j]);
 		#ifdef DEBUG
-		if (!cur) continue; // TODO 加条警告，未注册的组件id
+		if (!cur) {
+		    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->with[j]);
+		    continue;
+		}
 		#endif
 		if (!maple_entity_has(cur->value.sparse_set, e)) {
 			goto End;
@@ -229,7 +267,10 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 	for (i32 j = 0; j < arrlen(q_iter->without); j++) {
 		CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->without[j]);
 		#ifdef DEBUG
-		if (!cur) continue; // TODO 加条警告，未注册的组件id
+		if (!cur) {
+		    LOG_WARN_LIMITED(20, u8"Unregistered component id: %d", q_iter->without[j]);
+		    continue;
+		}
 		#endif
 		if (!maple_entity_has(cur->value.sparse_set, e)) {
 			goto End;

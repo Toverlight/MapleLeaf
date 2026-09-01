@@ -21,7 +21,10 @@ static void maple_update_horizontal_box(Node* node) {
     for (isize i = 0; i < arrlen(node->children); i++) {
         w_sum += node->children[i]->weight;
     }
-    if (!w_sum) return; // 没有孩子 或 权重全为0（后者理论上不应该存在）
+    if (!w_sum) { // 没有孩子 或 权重全为0（后者理论上不应该存在）
+        LOG_WARN_LIMITED(20, u8"Node has no children or weight sum is 0");
+        return;
+    }
     // TODO 现从左往右。以后可能添加从右往左的
     f32 cur_left = node->computed.center_x - node->computed.half_width;
     for (isize i = 0; i < arrlen(node->children); i++) {
@@ -37,7 +40,10 @@ static void maple_update_vertical_box(Node* node) {
     for (isize i = 0; i < arrlen(node->children); i++) {
         w_sum += node->children[i]->weight;
     }
-    if (!w_sum) return; // 没有孩子 或 权重全为0（后者理论上不应该存在）
+    if (!w_sum) { // 没有孩子 或 权重全为0（后者理论上不应该存在）
+        LOG_WARN_LIMITED(20, u8"Node has no children or weight sum is 0");
+        return;
+    }
     // TODO 现从上往下。以后可能添加从下往上的
     f32 cur_up = node->computed.center_y - node->computed.half_height;
     for (isize i = 0; i < arrlen(node->children); i++) {
@@ -86,6 +92,7 @@ void maple_df_node_computer(void) {
     isize i = hmgeti(comp_type_reg, comp_id(Node));
     if (i < 0) {
         // TODO error: 未注册的组件Node
+        LOG_ERROR_ONCE(u8"Unregistered component 'Node'");
         return;
     }
     for (isize j = 0; j < comp_type_reg[i].value.dense_len; j++) {

@@ -4,7 +4,9 @@
 #include <stb_ds.h>
 #include <maple/event.h>
 #include <maple/builtin/resources.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_ttf.h>
+#include <maple/builtin/sdl3_layer.h>
 
 struct Application;
 typedef void(*PluginFn)(struct Application* app);
@@ -39,6 +41,10 @@ typedef struct Application {
 	int h_real;
 	int w_logic;
 	int h_logic;
+
+	WindowHandle window;
+	RendererHandle renderer;
+
 	PluginFn* plugins;
 	PluginSet plugin_all; // 插件去重
 	SystemFn** schedules;
@@ -46,17 +52,23 @@ typedef struct Application {
 	Message* next_messages;
 	Message* current_messages;
 	G_ObserverReg g_observer_reg;
-	bool condition;
+	bool condition; // 运行条件
 } Application;
 
 #define APP_START(app_name, version, app_identifier, w_real, h_real, w_logic, h_logic) \
 int main(void) { \
     SDL_SetAppMetadata(#app_name, #version, #app_identifier); \
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) { \
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Init failed: %s", SDL_GetError()); \
+        LOG_ERROR("Init failed: %s", SDL_GetError()); \
 	} \
+	TTF_Init(); \
+	log_init(u8"maple_log.txt"); \
+	WindowHandle window; \
+	RendererHandle renderer; \
+	SDL_CreateWindowAndRenderer(#app_name, w_real, h_real, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY, &window, &renderer); \
+	SDL_SetRenderLogicalPresentation(renderer, w_logic, h_logic, SDL_LOGICAL_PRESENTATION_LETTERBOX); \
 	Application* _obj_self = app_get(); \
-	*_obj_self = (Application) { (app_name), (version), (app_identifier), (w_real), (h_real), (w_logic), (h_logic), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
+	*_obj_self = (Application) { (app_name), (version), (app_identifier), (w_real), (h_real), (w_logic), (h_logic), (window), (renderer), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
     for (i32 i = 0; i < arrlen(_obj_self->plugins); i++) { \
     	_obj_self->plugins[i](&app); \
     } \
@@ -66,6 +78,10 @@ int main(void) { \
     } \
 
 #define APP_END() \
+SDL_DestroyRenderer(_obj_self->renderer); \
+SDL_DestroyWindow(_obj_self->window); \
+log_quit(); \
+TTF_Quit(); \
 SDL_Quit(); \
 maple_app_exit(_obj_self); \
 return 0; }

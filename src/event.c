@@ -28,12 +28,12 @@ MsgId msg_id_fn(const char* name) {
 MsgId reg_msg_fn(const char* name) {
     MsgId id = msg_id_fn(name);
     if (id != MSG_ID_INVALID) [[clang::unlikely]] {
-        // TODO warning: 重复注册相同消息
+        LOG_WARN_LIMITED(20, u8"Redundant register action for message type '%s'", name);
         return id;
     }
     id = gen_msg_id(name);
     if (id == MSG_ID_INVALID) [[clang::unlikely]] {
-        // TODO error: 消息id生成失败（可能是超出限制所致。如果有限制的话）
+        LOG_ERROR_LIMITED(20, u8"Failed to generate message type id: of name '%s'. Be careful of the probably existing id num limit", name);
         return MSG_ID_INVALID;
     }
     return id;
@@ -55,7 +55,10 @@ Message message_receive_fn(struct Application* app, const char* message_name) {
 }
 
 void signal_add_global_observer_fn(Application* app, SigId sig_id, G_ObserverFn g_fn) {
-	if (sig_id == SIG_INVALID) return; // TODO 信号id非法警告
+	if (sig_id == SIG_INVALID) {
+	    LOG_WARN_LIMITED(20, u8"Invalid signal type id");
+		return;
+	}
 	isize i = hmgeti(app->g_observer_reg, sig_id);
 	if (i >= 0) {
 		arrput(app->g_observer_reg[i].value, g_fn);
@@ -79,7 +82,10 @@ void maple_unreg_e_observer_all(void) {
 }
 
 void signal_add_entity_observer_fn(Entity entity, SigId sig_id, E_ObserverFn e_fn) {
-	if (sig_id == SIG_INVALID) return; // 非法警告
+	if (sig_id == SIG_INVALID) {
+	    LOG_WARN_LIMITED(20, u8"Invalid signal type id");
+		return;
+	}
 	isize i = hmgeti(e_observer_reg, sig_id);
 	if (i >= 0) {
 		isize j = hmgeti(e_observer_reg[i].value, entity);
@@ -100,7 +106,10 @@ void signal_add_entity_observer_fn(Entity entity, SigId sig_id, E_ObserverFn e_f
 }
 
 void signal_global_trigger_fn(Application* app, Signal signal) {
-	if (signal.sig_id == SIG_INVALID) return; // 一次性非法警告
+	if (signal.sig_id == SIG_INVALID) {
+	    LOG_WARN_ONCE(u8"Invalid signal type id");
+		return;
+	}
 	// 全局挂载触发
 	do {
 		isize i = hmgeti(app->g_observer_reg, signal.sig_id);
@@ -128,7 +137,10 @@ void signal_global_trigger_fn(Application* app, Signal signal) {
 }
 
 void signal_entity_trigger_fn(Entity entity, Signal signal) {
-	if (signal.sig_id == SIG_INVALID) return; // 一次性非法警告
+	if (signal.sig_id == SIG_INVALID) {
+	    LOG_WARN_ONCE(u8"Invalid signal type id");
+		return;
+	}
 	isize i = hmgeti(e_observer_reg, signal.sig_id);
 	if (i >= 0) {
 		isize j = hmgeti(e_observer_reg[i].value, entity);

@@ -4,7 +4,7 @@
 #include <maple/basic_types.h>
 #include <maple/tools.h>
 #include <maple/traits/default.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 DECLARE_RESOURCE_BEGIN(Res_TimeFixed)
 	u64 nspf;

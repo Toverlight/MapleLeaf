@@ -1,5 +1,6 @@
 #include <maple/timer.h>
 #include <stb_ds.h>
+#include <maple/builtin/sdl3_layer.h>
 
 typedef struct {
 	const char* key;
@@ -25,7 +26,8 @@ Timer* timer_get_or_null_fn(const char* name) {
 	if (i >= 0) {
 		return timer_reg[i].value;
 	}
-	return NULL;
+	LOG_ERROR_LIMITED(100, u8"Timer named '%s' not found", name);
+	return nullptr;
 }
 
 void timer_set_rest_count_fn(Timer* timer, i32 rest_count) {
@@ -61,6 +63,7 @@ bool timer_delete_fn(const char* name) {
 		shdel(timer_reg, name);
 		return true;
 	}
+	LOG_WARN_LIMITED(20, u8"Invalid timer deletion: name '%s'", name);
 	return false;
 }
 
