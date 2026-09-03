@@ -70,6 +70,9 @@ function(add_demo demo_name)
     add_executable(${demo_name} ${DEMO_SOURCES})
     target_link_libraries(${demo_name} PRIVATE maple_core)
     target_link_sdl3(${demo_name})
+    if(WIN32)
+        target_link_libraries(${demo_name} PRIVATE psapi)
+    endif()
 
     add_custom_command(TARGET ${demo_name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different

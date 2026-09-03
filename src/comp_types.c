@@ -1,5 +1,6 @@
 #include <maple/comp_types.h>
 #include <stdlib.h>
+#include <maple/builtin/sdl3_layer.h>
 
 bool maple_entity_insert(CompType* type, const void* data, Entity e) {
     if (maple_entity_has(type->sparse_set, e)) return false; // 一个实体最多拥有一个同种的组件
@@ -45,17 +46,17 @@ CompId comp_id_fn(const char* name) {
 
 CompId reg_comp_fn(const char* name, usize comp_size, CompFreeFn free_fn) {
     if (!comp_size) [[clang::unlikely]] {
-        // TODO error: comp_size 不可以为 0
+        LOG_ERROR(u8"For component '%s': arg comp_size cannot be 0", name);
         return COMP_ID_INVALID;
     }
     CompId id = comp_id_fn(name);
     if (id != COMP_ID_INVALID) [[clang::unlikely]] {
-        // TODO warning: 重复注册相同组件
+        LOG_WARN(u8"Attempted to register same component '%s' once more", name);
         return id;
     }
     id = gen_comp_id(name);
     if (id == COMP_ID_INVALID) [[clang::unlikely]] {
-        // TODO error: 组件id生成失败（可能是超出限制所致。如果有限制的话）
+        LOG_ERROR(u8"Failed to generate comp id for component '%s' (check if there's a id bound limit which is surpassed)", name);
         return COMP_ID_INVALID;
     }
 	isize i = hmgeti(comp_type_reg, id);
@@ -69,7 +70,7 @@ CompId reg_comp_fn(const char* name, usize comp_size, CompFreeFn free_fn) {
 		};
 		hmput(comp_type_reg, id, type);
 	} else [[clang::unlikely]] {
-	    // TODO error: 被错误占用的新组件id
+		LOG_ERROR(u8"Wrongly occupied new comp id, for '%s'", name);
 	}
 	return id;
 }
@@ -93,6 +94,14 @@ void maple_unreg_comp_all(void) {
 static Entity entity_available_pool[ENTITY_NUM_MAX]; // 空闲实体栈。TODO 初始化
 static usize next_available = 0; // 栈顶
 
+void maple_entity_pool_init(void) {
+    for (isize i = 0; i < ENTITY_NUM_MAX; i++) {
+        entity_available_pool[i] = i + 1;
+    }
+}
+
+// TODO pool 的free函数
+
 Entity maple_entity_next(void) {
     if (next_available == ENTITY_NUM_MAX) [[clang::unlikely]] {
          return ENTITY_INVALID;
@@ -109,6 +118,6 @@ bool maple_entity_despawn(Entity e) {
 		entity_available_pool[--next_available] = e; // 回收实体
 		return true;
 	}
-	// TODO error:【固定次数日志】实体回收失败，预料之外的多余实体id
+	LOG_ERROR_LIMITED(100, u8"Failed to reclaim entity '%d', whose id is unexpectedly redundant", e);
 	return false;
 }

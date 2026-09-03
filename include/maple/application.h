@@ -7,6 +7,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_ttf.h>
 #include <maple/builtin/sdl3_layer.h>
+#include <maple/traits/to_string.h>
 
 struct Application;
 typedef void(*PluginFn)(struct Application* app);
@@ -37,10 +38,10 @@ typedef struct Application {
 	const char* name;
 	const char* version;
 	const char* app_identifier;
-	int w_real;
-	int h_real;
-	int w_logic;
-	int h_logic;
+	i32 w_real;
+	i32 h_real;
+	i32 w_logic;
+	i32 h_logic;
 
 	WindowHandle window;
 	RendererHandle renderer;
@@ -55,20 +56,26 @@ typedef struct Application {
 	bool condition; // 运行条件
 } Application;
 
+DECLARE_INTERFACE(Application, ToString, app);
+
 #define APP_START(app_name, version, app_identifier, w_real, h_real, w_logic, h_logic) \
 int main(void) { \
-    SDL_SetAppMetadata(#app_name, #version, #app_identifier); \
+    SDL_SetAppMetadata((app_name), (version), (app_identifier)); \
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) { \
-        LOG_ERROR("Init failed: %s", SDL_GetError()); \
+        fprintf(stdout, "ERROR: Init failed: %s", SDL_GetError()); \
 	} \
 	TTF_Init(); \
 	log_init(u8"maple_log.txt"); \
+	maple_entity_pool_init(); \
 	WindowHandle window; \
 	RendererHandle renderer; \
-	SDL_CreateWindowAndRenderer(#app_name, w_real, h_real, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY, &window, &renderer); \
-	SDL_SetRenderLogicalPresentation(renderer, w_logic, h_logic, SDL_LOGICAL_PRESENTATION_LETTERBOX); \
+	SDL_CreateWindowAndRenderer((app_name), (w_real), (h_real), SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY, &window, &renderer); \
+	SDL_SetRenderLogicalPresentation(renderer, (w_logic), (h_logic), SDL_LOGICAL_PRESENTATION_LETTERBOX); \
 	Application* _obj_self = app_get(); \
 	*_obj_self = (Application) { (app_name), (version), (app_identifier), (w_real), (h_real), (w_logic), (h_logic), (window), (renderer), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
+	utf8* _meta_str = app_to_string_fn(_obj_self); \
+    LOG_INFO(u8"Application started. %s", (const char*)_meta_str); \
+    arrfree(_meta_str); \
     for (i32 i = 0; i < arrlen(_obj_self->plugins); i++) { \
     	_obj_self->plugins[i](&app); \
     } \
@@ -160,13 +167,13 @@ do { \
 void app_add_system_fn(Application* app, Schedule schedule, SystemFn system);
 #define app_add_system(schedule, systemfn) app_add_system_fn(_obj_self, (schedule), (systemfn))
 
-// TODO i >= 0 分支下加上warning: redundant system set named "..."
 #define app_system_set(name, ...) \
 ({ \
 	const SystemFn* system_set = (const SystemFn*) { __VA_ARGS__, nullptr }; \
 	isize i = shgeti(_obj_self->system_sets, #name); \
 	if (i >= 0) { \
         system_set = (const SystemFn*) { nullptr }; \
+        LOG_WARN_LIMITED(50, u8"Redundant system set named '%s'", #name); \
 	} else { \
 	    shput(_obj_self->system_sets, #name, system_set); \
 	} \

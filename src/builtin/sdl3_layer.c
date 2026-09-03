@@ -11,6 +11,7 @@ IMPL_HACKER_COPIED(FontReg, font_reg)
 IMPL_HACKER_COPIED(Utf8TileReg, utf8_tile_reg)
 
 FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize) {
+    // TODO 考虑ptsize判断，防止加载过大的字体
     isize i = shgeti(font_reg, (const char*)utf8_font_path);
     if (i >= 0) return font_reg[i].value;
     TTF_Font* font = TTF_OpenFont((const char*)utf8_font_path, ptsize);
@@ -19,7 +20,7 @@ FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize) {
     }
     FontHandle handle = font;
     char key[256];
-    i32 written = snprintf(key, sizeof(key), "%s|%02d", (const char*)utf8_font_path, ptsize);
+    i32 written = snprintf(key, sizeof(key), "%s|%03d", (const char*)utf8_font_path, ptsize);
     if (written >= (i32)sizeof(key)) {
         LOG_ERROR_LIMITED(10, u8"Key string buffer overflow: as for font '%s'", (const char*)utf8_font_path);
     }
@@ -29,11 +30,15 @@ FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize) {
 
 // TODO 对于失败的情况，可以考虑添加对应大小的占位符纹理（就像乱码文本都是不明方块字符一样）
 void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
+    // TODO font height 判断，防止加载过大的文本纹理
     Utf8TileItem* out_fitted = (Utf8TileItem*)data;
     char key[48];
-    i32 written = snprintf(key, sizeof(key), "%s|%02d", (const char*)utf8_char, out_fitted->font_height);
-    if (written >= (i32)sizeof(key)) {
-        LOG_ERROR_LIMITED(100, u8"Key string buffer overflow: as for utf8 char '%s'", (const char*)utf8_char);
+    memcpy(key, utf8_char, bytes);
+    i32 written = snprintf(key + bytes, sizeof(key) - bytes, "|%03d", out_fitted->font_height);
+    if (bytes + written >= (i32)sizeof(key)) {
+        char err_utf8char[5];
+        memcpy(err_utf8char, utf8_char, bytes);
+        LOG_ERROR_LIMITED(100, u8"Key string buffer overflow: as for utf8 char '%s'", err_utf8char);
         // TODO placeholder texture added
         return;
     }
@@ -60,6 +65,20 @@ void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
     } else {
         arrput(out_fitted->textures, utf8_tile_reg[i].value);
     }
+}
+
+void maple_unload_fonts(void) {
+    for (isize i = 0; i < shlen(font_reg); i++) {
+        TTF_CloseFont(font_reg[i].value);
+    }
+    shfree(font_reg);
+}
+
+void maple_unload_utf8_tiles(void) {
+    for (isize i = 0; i < shlen(utf8_tile_reg); i++) {
+        SDL_DestroyTexture(utf8_tile_reg[i].value);
+    }
+    shfree(utf8_tile_reg);
 }
 
 void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data) {
@@ -155,7 +174,10 @@ void log_set_file_priority(LogPriority priority) {
 }
 
 void log_init(const utf8* utf8_log_file_path) {
-    if (log_initialized) return;
+    if (log_initialized) {
+        fprintf(stdout, "Log module hasn't been initialized");
+        return;
+    }
     log_ctx.mutex = SDL_CreateMutex();
     if (!log_ctx.mutex) {
         LOG_ERROR(u8"Failed to create SDL_Mutex: %s", SDL_GetError());

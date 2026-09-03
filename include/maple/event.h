@@ -53,7 +53,7 @@ enum : SigId {
 
 	// ...
 
-	Sig_Custom
+	SIG_CUSTOM
 };
 
 typedef struct Signal {

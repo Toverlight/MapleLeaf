@@ -42,6 +42,7 @@ void maple_unreg_comp_all(void);
 #define comp_id(comp_name) ((void)sizeof(comp_name), comp_id_fn(#comp_name))
 #define reg_comp(comp_name, free_fn) reg_comp_fn(#comp_name, sizeof(comp_name), free_fn)
 
+void maple_entity_pool_init(void);
 Entity maple_entity_next(void);
 bool maple_entity_despawn(Entity e);
 

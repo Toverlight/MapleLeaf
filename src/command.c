@@ -1,5 +1,6 @@
 #include <maple/command.h>
 #include <maple/comp_types.h>
+#include <maple/builtin/sdl3_layer.h>
 
 // TODO multi-command configuration & multi-thread support
 Command command;
@@ -8,7 +9,7 @@ struct EntityCommand cmd_spawn_fn(struct Command* self, bool* success) {
 	Entity target = maple_entity_next();
 	EntityCommand ecmd = { target, self };
 	if (!target) {
-		// TODO 加一条限定最大次数的警告或报错，因为这种情况会导致后面的链式调用全部失败
+		LOG_WARN_LIMITED(100, u8"Target entity spawned as invalid. It can cause continuous failures after this call in the chain calls");
 		if (success) *success = false;
 	} else {
 		if (success) *success = true;
@@ -18,7 +19,7 @@ struct EntityCommand cmd_spawn_fn(struct Command* self, bool* success) {
 struct EntityCommand cmd_entity_fn(struct Command* self, Entity target, bool* success) {
 	EntityCommand ecmd = { target, self };
 	if (!target) {
-		// TODO 加一条限定最大次数的警告或报错，因为这种情况会导致后面的链式调用全部失败
+		LOG_WARN_LIMITED(100, u8"Target entity spawned as invalid. It can cause continuous failures after this call in the chain calls");
 		if (success) *success = false;
 	} else {
 		if (success) *success = true;
@@ -124,7 +125,7 @@ void ecmd_despawn_fn(struct EntityCommand* self, bool* success) {
 		// 单体删除
 		if (!maple_entity_despawn(arr[cur])) {
 			failed = true;
-			// TODO 插入一条Log error指示哪个实体despawn出错
+			LOG_ERROR_LIMITED(100, u8"Entity '%d' failed to be despawned", self->target);
 		}
 		isize i = hmgeti(filiation_reg, arr[cur]);
 		if (i >= 0) {
