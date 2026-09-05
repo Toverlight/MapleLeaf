@@ -47,5 +47,5 @@ void print_program_memory(void) {
 
     double mem_mb = (double)rss_bytes / (1024.0 * 1024.0);
     // 使用 SDL3 的统一日志输出函数，带格式化
-    LOG_DEBUG(u8"Current RSS: %.2f MB", mem_mb);
+    DLOG(u8"Current RSS: %.2f MB", mem_mb);
 }

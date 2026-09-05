@@ -11,14 +11,14 @@ QueryIter query_create(const WaitCond* conds) {
 }
 
 void query_init(QueryIter* q_iter) {
-	if (!q_iter->stride) return; // 防止误重复初始化
+	if (q_iter->stride) return; // 防止误重复初始化
 	for (i32 i = 0; q_iter->conds[i].key != COMP_ID_INVALID; i++) {
 		// 查all，没有则插；有则跳过
 		isize j = hmgeti(q_iter->all, q_iter->conds[i].key);
 		if (j >= 0) continue;
 		hmputs(q_iter->all, (CompIdEntry){ .key = q_iter->conds[i].key });
-		CompId* target_container = (void*)q_iter + q_iter->conds[i].value;
-		arrput(target_container, q_iter->conds[i].key);
+		CompId** target_container = (void*)q_iter + q_iter->conds[i].value;
+		arrput(*target_container, q_iter->conds[i].key);
 		if (q_iter->conds[i].value == offsetof(QueryIter, select) ||
 			q_iter->conds[i].value == offsetof(QueryIter, option)) {
 				q_iter->stride++;
@@ -74,9 +74,13 @@ void query_free(QueryIter* q_iter) {
 static const CompType* find_shortest_comp_arr(QueryIter* q_iter, usize* i_out, bool* is_select_out) {
 	CompTypeEntry* type = nullptr;
 	bool is_select = true;
+	*i_out = 0;
 	CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg);
 	for (isize i = 0; i < arrlen(q_iter->select); i++) {
-		if (!type) type = hmgetp_null(comp_type_reg, q_iter->select[i]);
+		if (!type) {
+		    type = hmgetp_null(comp_type_reg, q_iter->select[i]);
+			*i_out = i;
+		}
 		if (type) {
 			CompTypeEntry* cur = hmgetp_null(comp_type_reg, q_iter->select[i]);
 			if (cur != nullptr && type->value.dense_len > cur->value.dense_len) {
@@ -101,7 +105,7 @@ static const CompType* find_shortest_comp_arr(QueryIter* q_iter, usize* i_out, b
 		}
 	}
 	*is_select_out = is_select;
-	return &type->value;
+	return type ? &type->value : nullptr;
 }
 
 bool query_execute(QueryIter* q_iter) {

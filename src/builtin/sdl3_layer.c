@@ -24,6 +24,7 @@ FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize) {
     if (written >= (i32)sizeof(key)) {
         LOG_ERROR_LIMITED(10, u8"Key string buffer overflow: as for font '%s'", (const char*)utf8_font_path);
     }
+    DLOG(u8"Font load successfully: path|ptsize : %s", key);
     shput(font_reg, key, handle);
     return handle;
 }
@@ -48,10 +49,9 @@ void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
         // 键的拼接方式：<utf8 char>|<font_height>（暂定u8'|'作为特殊字符）
         // 成功：更新reg；失败：error并返回nullptr
         // FIXME text纹理大小的分级处理由外部完成。类似mipmap多级清晰度的以后优化
-        // FIXME 默认字体暂定"assets/fonts/SOURCEHANSANSSC-NORMAL-2.OTF"
-        FontHandle font_handle = maple_load_font(u8"assets/fonts/SOURCEHANSANSSC-NORMAL-2.OTF", out_fitted->font_height);
+        FontHandle font_handle = maple_load_font(MAPLE_ASSET(u8"fonts/SOURCEHANSANSSC-NORMAL-2.OTF"), out_fitted->font_height);
         SDL_Color color = { 255, 255, 255, 255 };
-        SDL_Surface* surface = TTF_RenderText_Blended(font_handle, (const char*)utf8_char, 0, color);
+        SDL_Surface* surface = TTF_RenderText_Blended(font_handle, (const char*)utf8_char, bytes, color);
         if (!surface) {
             LOG_ERROR_LIMITED(100, u8"Failed to create utf8 tile '%s'", (const char*)utf8_char);
             SDL_DestroySurface(surface);
@@ -122,6 +122,7 @@ void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data) {
 // TODO log files rolling
 static bool log_initialized = false;
 
+// TODO 优化：滚动日志（指定数量和大小）
 typedef struct {
     FILE* file;
     SDL_Mutex* mutex;  // SDL3 互斥锁指针
@@ -129,12 +130,30 @@ typedef struct {
     LogPriority file_priority;
 } LogContext;
 
-static LogContext log_ctx = { .file = nullptr, .mutex = nullptr, .console_priority = LogPriority_Trace, .file_priority = LogPriority_Info };
+static LogContext log_ctx = {
+    .file = nullptr,
+    .mutex = nullptr,
+    .console_priority =
+#ifdef DEBUG
+    LogPriority_Trace,
+#else
+    LogPriority_Info,
+#endif
+    .file_priority =
+#ifdef DEBUG
+    LogPriority_Debug
+#else
+    LogPriority_Info
+#endif
+};
 
 // TODO 引入多线程后加上thread信息
 static void maple_log_callback(void* userdata, int category, SDL_LogPriority priority, const char* message) {
     LogContext* ctx = (LogContext*)userdata;
     if (!ctx) return;
+    if (!(priority >= (SDL_LogPriority)ctx->console_priority) && !(priority >= (SDL_LogPriority)ctx->file_priority && ctx->file)) {
+        return;
+    }
 
     SDL_LockMutex(ctx->mutex);
 
@@ -144,7 +163,7 @@ static void maple_log_callback(void* userdata, int category, SDL_LogPriority pri
     strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", local_time);
 
     const char* priority_str = "INFO";
-    switch (category) {
+    switch (priority) {
         case SDL_LOG_PRIORITY_TRACE:    priority_str = "TRCE"; break;
         case SDL_LOG_PRIORITY_VERBOSE:  priority_str = "VERB"; break;
         case SDL_LOG_PRIORITY_DEBUG:    priority_str = "DEBG"; break;
@@ -154,12 +173,18 @@ static void maple_log_callback(void* userdata, int category, SDL_LogPriority pri
         default: break;
     }
 
-    if (priority >= (SDL_LogPriority)ctx->console_priority) fprintf(stdout, "[%s] [%s] [Cat:%d] %s\n", time_str, priority_str, category, message);
-    // fflush(stdout);
+    if (priority >= (SDL_LogPriority)ctx->console_priority) {
+        fprintf(stdout, "[%s] [%s] [Cat:%d] %s\n", time_str, priority_str, category, message);
+#ifdef DEBUG
+        fflush(stdout);
+#endif
+    }
 
     if (priority >= (SDL_LogPriority)ctx->file_priority && ctx->file) {
         fprintf(ctx->file, "[%s] [%s] [Cat:%d] %s\n", time_str, priority_str, category, message);
-        // fflush(ctx->file);
+#ifdef DEBUG
+        fflush(ctx->file);
+#endif
     }
 
     SDL_UnlockMutex(ctx->mutex);
@@ -190,15 +215,18 @@ void log_init(const utf8* utf8_log_file_path) {
             SDL_DestroyMutex(log_ctx.mutex);
             log_ctx.mutex = nullptr;
             LOG_ERROR(u8"Cannot open log file: %s", (const char*)utf8_log_file_path);
+            return;
         }
     }
-    LOG_ERROR(u8"Log file opened successfully, view here if needed: %s", (const char*)utf8_log_file_path);
+    DLOG(u8"Log file opened successfully, view here if needed: %s", (const char*)utf8_log_file_path);
     SDL_SetLogOutputFunction(maple_log_callback, &log_ctx);
     SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_TRACE);
     log_initialized = true;
 }
 
 void log_quit(void) {
+    fflush(stdout);
+    fflush(log_ctx.file);
     SDL_SetLogOutputFunction(nullptr, nullptr);
 
     // 安全释放锁和文件句柄

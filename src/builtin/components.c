@@ -60,7 +60,6 @@ bool node_set_parent(Node* node, Node* parent) {
 }
 void maple_node_free(void* comp) {
     Node* node = (Node*)comp;
-    arrfree(node->parent);
     arrfree(node->children);
 }
 

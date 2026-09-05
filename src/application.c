@@ -3,6 +3,7 @@
 #include <maple/event.h>
 #include <maple/timer.h>
 #include <maple/memory_utils.h>
+#include <maple/path_utils.h>
 
 static Application app;
 
@@ -42,6 +43,8 @@ void maple_app_exit(Application* app) {
 
     maple_unload_fonts();
     maple_unload_utf8_tiles();
+
+    maple_clear_paths();
 }
 
 void app_add_plugin_fn(Application* app, PluginFn plugin) {

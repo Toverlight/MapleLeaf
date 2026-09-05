@@ -8,6 +8,17 @@
 #include <maple/comp_types.h>
 #include <maple/builtin/sdl3_layer.h>
 
+void maple_df_event_pump(void) {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_EVENT_QUIT) {
+            DLOG(u8"SDL_EVENT_QUIT received, stopping main loop");
+            app_get()->condition = false;
+        }
+        // TODO keyboard and mouse inputs -> to Res & Signal
+    }
+}
+
 void maple_df_message_buf_swapper(void) {
 	Application* app = app_get();
 	Message* temp = app->next_messages;
@@ -91,7 +102,7 @@ void maple_df_node_computer(void) {
     CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg);
     isize i = hmgeti(comp_type_reg, comp_id(Node));
     if (i < 0) {
-        // TODO error: 未注册的组件Node
+        // error: 未注册的组件Node
         LOG_ERROR_ONCE(u8"Unregistered component 'Node'");
         return;
     }
@@ -152,7 +163,7 @@ void maple_df_text_tile_updater(void) {
 
         // FIXME 尺寸可能还受其他属性控制
         if (text->computed.half_width == node->computed.half_width
-        || text->computed.half_height == node->computed.half_height) {
+        && text->computed.half_height == node->computed.half_height) {
             text->size_changed = false;
         } else {
             text->computed.half_width = node->computed.half_width;
@@ -171,6 +182,58 @@ void maple_df_text_tile_updater(void) {
     QUERY_FREE(&query);
 }
 
+void maple_df_render_start(void) {
+    RendererHandle renderer = app_get()->renderer;
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+}
+
+void maple_df_render_ui(void) {
+    QueryIter query = QUERY(
+        Q_OPTION(Text)
+        // TODO more ui renderables to be added
+    );
+    QUERY_INIT(&query);
+    CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg);
+    isize i = hmgeti(comp_type_reg, comp_id(Node));
+    if (i < 0) {
+        // error: 未注册的组件Node
+        LOG_ERROR_ONCE(u8"Unregistered component 'Node'");
+        return;
+    }
+    for (isize j = 0; j < comp_type_reg[i].value.dense_len; j++) {
+        Node* node = &comp_type_reg[i].value.dense_set[j * sizeof(Node)];
+        if (node->parent) continue; // 从“根”节点（可能多个）开始
+        Entity e = node->owner;
+        Q_GET_BEGIN(&query, e, target)
+        if (target) {
+            RendererHandle renderer = app_get()->renderer;
+            ComputedNode* computed_node = &node->computed;
+            // TODO more subjects to render...(note the order)
+            Text* text = (Text*)Q_FETCH(&query, target, Text);
+            if (text) {
+                // TODO to support text texture rotation in the future, render target may be drawn as the temp one and rotated later...
+                SDL_SetRenderTarget(renderer, nullptr);
+                for (isize i = 0; i < arrlen(text->computed.textures); i++) {
+                    SDL_FRect dst;
+                    // FIXME is it ok to use 'computed_node->' instead of 'computed_text->'?
+                    dst.x = computed_node->center_x - computed_node->half_width + i * node->font_height;
+                    dst.y = computed_node->center_y - computed_node->half_height;
+                    dst.w = node->font_height;
+                    dst.h = node->font_height;
+                    SDL_RenderTexture(renderer, text->computed.textures[i], nullptr, &dst);
+                }
+            }
+        }
+        Q_GET_END(target)
+    }
+    QUERY_FREE(&query);
+}
+
+void maple_df_render_present(void) {
+    SDL_RenderPresent(app_get()->renderer);
+}
+
 // 默认插件
 void default_plugin(struct Application* app) {
     reg_res(Res_TimeFixed, res_time_fixed_default_fn());
@@ -182,8 +245,21 @@ void default_plugin(struct Application* app) {
     reg_comp(Button, nullptr);
     reg_comp(Text, maple_text_free);
 
-	arrins(app->schedules[PreUpdate], 0, maple_df_message_buf_swapper); // 注册消息缓冲区交换系统
+	arrins(app->schedules[PreUpdate], 0, maple_df_event_pump); // 注册事件泵系统
+	arrins(app->schedules[PreUpdate], 1, maple_df_message_buf_swapper); // 注册消息缓冲区交换系统
+
 	arrput(app->schedules[PostUpdate], maple_df_node_computer); // 注册节点实际属性计算系统
 	arrput(app->schedules[PostUpdate], maple_df_btn_processor); // 注册按钮处理系统
 	arrput(app->schedules[PostUpdate], maple_df_text_tile_updater); // 注册文本更新系统
+
+	arrput(app->schedules[Render], maple_df_render_start); // 注册渲染开始
+	// TODO other rendering systems (must be) before ui
+	arrput(app->schedules[Render], maple_df_render_ui); // 注册ui渲染系统
+	// TODO register the rendering system
+	arrput(app->schedules[Render], maple_df_render_present); // 注册present
+
+	DLOG(u8"For default_plugin:");
+	for (isize i = 0; i < arrlen(app->schedules); i++) {
+	    DLOG(u8"Schedule %d with df systems num %d", i, arrlen(app->schedules[i]));
+	}
 }

@@ -8,6 +8,7 @@
 #include <SDL3/SDL_ttf.h>
 #include <maple/builtin/sdl3_layer.h>
 #include <maple/traits/to_string.h>
+#include <maple/path_utils.h>
 
 struct Application;
 typedef void(*PluginFn)(struct Application* app);
@@ -25,6 +26,7 @@ typedef enum Schedule : u8 {
 	Update,
 	PostUpdate,
 	Cleanup,
+	Render,
 
 	Maple_ScheduleMax
 } Schedule;
@@ -61,24 +63,23 @@ DECLARE_INTERFACE(Application, ToString, app);
 #define APP_START(app_name, version, app_identifier, w_real, h_real, w_logic, h_logic) \
 int main(void) { \
     SDL_SetAppMetadata((app_name), (version), (app_identifier)); \
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) { \
-        fprintf(stdout, "ERROR: Init failed: %s", SDL_GetError()); \
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) { \
+        fprintf(stdout, "ERROR: SDL Init failed: %s", SDL_GetError()); \
 	} \
-	TTF_Init(); \
-	log_init(u8"maple_log.txt"); \
+	if (!TTF_Init()) { \
+	    fprintf(stdout, "ERROR: TTF Init failed: %s", SDL_GetError()); \
+	} \
+	log_init(ASSET(DEMO_NAME u8"_log.txt")); \
 	maple_entity_pool_init(); \
 	WindowHandle window; \
 	RendererHandle renderer; \
 	SDL_CreateWindowAndRenderer((app_name), (w_real), (h_real), SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY, &window, &renderer); \
 	SDL_SetRenderLogicalPresentation(renderer, (w_logic), (h_logic), SDL_LOGICAL_PRESENTATION_LETTERBOX); \
 	Application* _obj_self = app_get(); \
-	*_obj_self = (Application) { (app_name), (version), (app_identifier), (w_real), (h_real), (w_logic), (h_logic), (window), (renderer), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
-	utf8* _meta_str = app_to_string_fn(_obj_self); \
+	*_obj_self = (Application) { (app_name), (version), (app_identifier), (w_real), (h_real), (w_logic), (h_logic), (window), (renderer), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true }; \
+	const utf8* _meta_str = app_to_string_fn(_obj_self); \
     LOG_INFO(u8"Application started. %s", (const char*)_meta_str); \
     arrfree(_meta_str); \
-    for (i32 i = 0; i < arrlen(_obj_self->plugins); i++) { \
-    	_obj_self->plugins[i](&app); \
-    } \
     arrsetlen(_obj_self->schedules, Maple_ScheduleMax); \
     for (i32 i = 0; i < arrlen(_obj_self->schedules); i++) { \
     	_obj_self->schedules[i] = nullptr; \
@@ -106,7 +107,7 @@ do { \
 	static bool _executed = false; \
 	if (!_executed) { \
 		_executed = true; \
-		SystemFn* systems = _obj_self->schedule[(phase)];\
+		SystemFn* systems = _obj_self->schedules[(phase)];\
 		for (int i = 0; i < arrlen(systems); i++) { \
 			systems[i](); \
 		} \
@@ -115,7 +116,7 @@ do { \
 
 #define SCHEDULE_FRAME(phase) \
 do { \
-	SystemFn* systems = _obj_self->schedule[(phase)];\
+	SystemFn* systems = _obj_self->schedules[(phase)];\
 	for (int i = 0; i < arrlen(systems); i++) { \
 		systems[i](); \
 	} \
@@ -123,9 +124,11 @@ do { \
 
 #define SCHEDULE_INTERVAL(phase) \
 do { \
-	static u64 _lastpoint = get_ticks_ns(); \
+    static bool _t0 = true; \
+    static u64 _lastpoint = 0; \
+    if (_t0) { _t0 = false; _lastpoint = get_ticks_ns(); } \
 	u64 _currentpoint = get_ticks_ns(); \
-	SystemFn* systems = _obj_self->schedule[(phase)];\
+	SystemFn* systems = _obj_self->schedules[(phase)];\
 	while (_currentpoint - _lastpoint > get_fixed_ns()) { \
 		for (int i = 0; i < arrlen(systems); i++) { \
 			systems[i](); \
@@ -136,6 +139,11 @@ do { \
 
 #define MAIN_LOOP(fps) \
 do { \
+    for (i32 i = 0; i < arrlen(_obj_self->plugins); i++) { \
+        DLOG(u8"plugin %p start...", _obj_self->plugins[i]); \
+    	_obj_self->plugins[i](_obj_self); \
+        DLOG(u8"plugin %p end.", _obj_self->plugins[i]); \
+    } \
 	_obj_self->condition = true; \
 	f64 _fps = (f64)(fps); \
 	if (_fps < 1) _fps = 165; \
@@ -143,18 +151,29 @@ do { \
 	res_set(Res_TimeFixed, nspf, nspf); \
 	res_set(Res_TimeFixed, mspf, (f64)nspf / RATIO_MS_NS); \
 	res_set(Res_TimeFixed, spf, (f64)nspf / RATIO_S_NS); \
+	DLOG(u8"nspf: %llu, mspf: %.2f, spf: %.3f", res_get(Res_TimeFixed, nspf), res_get(Res_TimeFixed, mspf), res_get(Res_TimeFixed, spf)); \
 	SCHEDULE_GLOBAL(Startup); \
-	static u64 last = get_ticks_ns(); \
+	u64 last = get_ticks_ns(); \
 	while (_obj_self->condition) { \
 		u64 current = get_ticks_ns(); \
 		u64 delta_ns = current - last; \
 		res_set(Res_TimeDelta, dns, delta_ns); \
 		res_set(Res_TimeDelta, dms, (f64)delta_ns / RATIO_MS_NS); \
 		res_set(Res_TimeDelta, ds, (f64)delta_ns / RATIO_S_NS); \
+	    static u64 frame = 0; \
+		static u64 last_cp_ns = 0; \
+		if (frame == 0) last_cp_ns = current; \
+		frame++; \
+		if (frame == 600) { \
+		    DLOG(u8"Average milliseconds per frame: %.2f", (f64)(current - last_cp_ns) / (600 * RATIO_MS_NS)); \
+		    frame = 0; \
+		} \
+		DLOG_LIMITED(3, u8"delta_ns: %llu", delta_ns); \
 		SCHEDULE_FRAME(PreUpdate); \
 		SCHEDULE_INTERVAL(FixedUpdate); \
 		SCHEDULE_FRAME(Update); \
 		SCHEDULE_FRAME(PostUpdate); \
+		SCHEDULE_FRAME(Render); \
 		u64 elapsed = get_ticks_ns() - current; \
 		if (elapsed < get_fixed_ns()) { \
 			DELAY_NS(get_fixed_ns() - elapsed); \

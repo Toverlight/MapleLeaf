@@ -52,7 +52,7 @@ DEFINE_INTERFACE_END(Res_TimeDelta, Default, res_time_delta)
 #define get_ticks_ms() (get_ticks_ns() / RATIO_MS_NS)
 #define get_ticks_s() (get_ticks_ns() / RATIO_S_NS)
 
-#define RATIO_MS_NS 1'000ll
+#define RATIO_MS_NS 1'000'000ll
 #define RATIO_S_NS 1'000'000'000ll
 
 #define DELAY_NS(ns) SDL_DelayPrecise(ns)

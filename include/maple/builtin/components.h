@@ -106,6 +106,8 @@ DEFINE_INTERFACE_END(Button, Default, btn)
 // prefix 'ctext'
 // TODO ComputedText的尺寸之后再提供更新方式（width,height是否必要尚不确定)
 typedef struct ComputedText {
+    // utf8 characters (font atlas) sequence
+    // FIXME not only left to right? multi-lines and etc?
     TextureHandle* textures;
     f32 half_width;
     f32 half_height;

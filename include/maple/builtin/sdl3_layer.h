@@ -167,3 +167,57 @@ void log_internal(int category, LogPriority priority, const char* file, const ch
         LOG_CRITICAL((fmt), ##__VA_ARGS__); \
     } \
 } while(0)
+
+#ifdef DEBUG
+#define DLOG(...) LOG_DEBUG(__VA_ARGS__)
+#else
+#define DLOG(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define DLOG_ONCE(...) LOG_DEBUG_ONCE(__VA_ARGS__)
+#else
+#define DLOG_ONCE(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define DLOG_LIMITED(...) LOG_DEBUG_LIMITED(__VA_ARGS__)
+#else
+#define DLOG_LIMITED(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define VLOG(...) LOG_VERBOSE(__VA_ARGS__)
+#else
+#define VLOG(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define VLOG_ONCE(...) LOG_VERBOSE_ONCE(__VA_ARGS__)
+#else
+#define VLOG_ONCE(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define VLOG_LIMITED(...) LOG_VERBOSE_LIMITED(__VA_ARGS__)
+#else
+#define VLOG_LIMITED(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define TLOG(...) LOG_TRACE(__VA_ARGS__)
+#else
+#define TLOG(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define TLOG_ONCE(...) LOG_TRACE_ONCE(__VA_ARGS__)
+#else
+#define TLOG_ONCE(...) ((void)0)   // release 下参数求值也一并消除
+#endif
+
+#ifdef DEBUG
+#define TLOG_LIMITED(...) LOG_TRACE_LIMITED(__VA_ARGS__)
+#else
+#define TLOG_LIMITED(...) ((void)0)   // release 下参数求值也一并消除
+#endif
