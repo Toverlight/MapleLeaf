@@ -86,12 +86,12 @@ int main(void) { \
     } \
 
 #define APP_END() \
+maple_app_exit(_obj_self); \
 SDL_DestroyRenderer(_obj_self->renderer); \
 SDL_DestroyWindow(_obj_self->window); \
 log_quit(); \
 TTF_Quit(); \
 SDL_Quit(); \
-maple_app_exit(_obj_self); \
 return 0; }
 
 // 获取全局唯一app对象

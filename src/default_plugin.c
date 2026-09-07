@@ -33,7 +33,7 @@ static void maple_update_horizontal_box(Node* node) {
         w_sum += node->children[i]->weight;
     }
     if (!w_sum) { // 没有孩子 或 权重全为0（后者理论上不应该存在）
-        LOG_WARN_LIMITED(20, u8"Node has no children or weight sum is 0");
+        LOG_WARN_LIMITED(10, u8"Node has no children or weight sum is 0");
         return;
     }
     // TODO 现从左往右。以后可能添加从右往左的
@@ -52,7 +52,7 @@ static void maple_update_vertical_box(Node* node) {
         w_sum += node->children[i]->weight;
     }
     if (!w_sum) { // 没有孩子 或 权重全为0（后者理论上不应该存在）
-        LOG_WARN_LIMITED(20, u8"Node has no children or weight sum is 0");
+        LOG_WARN_LIMITED(10, u8"Node has no children or weight sum is 0");
         return;
     }
     // TODO 现从上往下。以后可能添加从下往上的
@@ -70,6 +70,8 @@ static void maple_update_none_layout(Node* node) {
     if (computed->half_width < 1e-2f || computed->half_height < 1e-2f) {
         computed->half_width = node->preferred_half_width;
         computed->half_height = node->preferred_half_height;
+        DLOG_LIMITED(20, u8"Node (of entity '%d')'s half size is automatically set to preference: (%.1f,%.1f)",
+            node->owner, computed->half_width, computed->half_height);
     }
 }
 
@@ -78,6 +80,7 @@ static void maple_node_update_tree(Node* root) {
     arrput(nodes, root);
     isize i = 0;
     do {
+        DLOG_ONCE(u8"Node's layout is %d", nodes[i]->layout);
         // ------
         switch (nodes[i]->layout) {
             case Layout_HorizontalBox:
@@ -149,17 +152,46 @@ void maple_df_btn_processor(void) {
 }
 
 // TODO 渲染阶段的textures按顺序渲染
-void maple_df_text_tile_updater(void) {
+void maple_df_text_tiles_updater(void) {
+    DLOG_ONCE(u8"Updating text tiles...");
     QueryIter query = QUERY(
         Q_SELECT(Text),
         Q_SELECT(Node)
     );
     QUERY_INIT(&query);
+    static bool log_flag_init = false;
+    if (!log_flag_init) {
+        const utf8* query_inited_str = query_to_string_fn(&query);
+        DLOG_ONCE(u8"Query just initialized: %s", query_inited_str);
+        arrfree(query_inited_str);
+        log_flag_init = true;
+    }
     Q_EXEC(&query);
+    static bool log_flag_exec = false;
+    if (!log_flag_exec) {
+        const utf8* query_exec_str = query_to_string_fn(&query);
+        DLOG_ONCE(u8"Query just executed: %s", query_exec_str);
+        arrfree(query_exec_str);
+        log_flag_exec = true;
+    }
     QueryTarget target;
     while (Q_NEXT(&query, &target)) {
+        static bool log_flag_next = false;
+        if (!log_flag_next) {
+            const utf8* query_next_str = query_to_string_fn(&query);
+            DLOG_ONCE(u8"Query advanced the first step: %s", query_next_str);
+            arrfree(query_next_str);
+            log_flag_next = true;
+        }
         Text* text = (Text*)Q_FETCH(&query, target, Text);
         Node* node = (Node*)Q_FETCH(&query, target, Node);
+        static bool log_flag_fetch = false;
+        if (!log_flag_fetch) {
+            const utf8* query_fetch_str = query_to_string_fn(&query);
+            DLOG_ONCE(u8"Query just fetched: %s", query_fetch_str);
+            arrfree(query_fetch_str);
+            log_flag_fetch = true;
+        }
 
         // FIXME 尺寸可能还受其他属性控制
         if (text->computed.half_width == node->computed.half_width
@@ -172,9 +204,16 @@ void maple_df_text_tile_updater(void) {
         }
 
         if (text->content_changed || text->size_changed) {
+            DLOG_ONCE(u8"Entered branch 'changed'");
             arrsetlen(text->computed.textures, 0);
-            Utf8TileItem item = (Utf8TileItem) { .textures = text->computed.textures, .font_height = node->font_height };
+            arrsetlen(text->computed.aspects, 0);
+            Utf8TileItem item = (Utf8TileItem) {
+                .textures = text->computed.textures,
+                .aspects = text->computed.aspects,
+                .font_height = node->font_height };
             utf8_iter_string(text->content, maple_load_utf8_tile, &item);
+            text->computed.textures = item.textures;
+            text->computed.aspects = item.aspects;
             text->content_changed = false;
             text->size_changed = false;
         }
@@ -214,14 +253,22 @@ void maple_df_render_ui(void) {
             if (text) {
                 // TODO to support text texture rotation in the future, render target may be drawn as the temp one and rotated later...
                 SDL_SetRenderTarget(renderer, nullptr);
+                f32 cursor_x = computed_node->center_x - computed_node->half_width;
+                f32 top_y = computed_node->center_y - computed_node->half_height;
                 for (isize i = 0; i < arrlen(text->computed.textures); i++) {
                     SDL_FRect dst;
                     // FIXME is it ok to use 'computed_node->' instead of 'computed_text->'?
-                    dst.x = computed_node->center_x - computed_node->half_width + i * node->font_height;
-                    dst.y = computed_node->center_y - computed_node->half_height;
-                    dst.w = node->font_height;
+                    dst.w = node->font_height * text->computed.aspects[i];
                     dst.h = node->font_height;
+                    dst.x = cursor_x;
+                    dst.y = top_y;
+                    cursor_x += dst.w;
+                    const ColorRgba* color = &node->font_forecolor;
+                    SDL_SetTextureColorMod(text->computed.textures[i], color->r, color->g, color->b);
+                    SDL_SetTextureAlphaMod(text->computed.textures[i], color->a);
                     SDL_RenderTexture(renderer, text->computed.textures[i], nullptr, &dst);
+                    SDL_SetTextureColorMod(text->computed.textures[i], 255, 255, 255);
+                    SDL_SetTextureAlphaMod(text->computed.textures[i], 255);
                 }
             }
         }
@@ -250,7 +297,7 @@ void default_plugin(struct Application* app) {
 
 	arrput(app->schedules[PostUpdate], maple_df_node_computer); // 注册节点实际属性计算系统
 	arrput(app->schedules[PostUpdate], maple_df_btn_processor); // 注册按钮处理系统
-	arrput(app->schedules[PostUpdate], maple_df_text_tile_updater); // 注册文本更新系统
+	arrput(app->schedules[PostUpdate], maple_df_text_tiles_updater); // 注册文本更新系统
 
 	arrput(app->schedules[Render], maple_df_render_start); // 注册渲染开始
 	// TODO other rendering systems (must be) before ui

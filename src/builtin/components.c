@@ -70,4 +70,5 @@ IMPL_COMP(Text)
 void maple_text_free(void* comp) {
     Text* text = (Text*)comp;
     arrfree(text->computed.textures);
+    arrfree(text->computed.aspects);
 }

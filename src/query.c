@@ -4,6 +4,41 @@
 #include <maple/tools.h>
 #include <maple/builtin/sdl3_layer.h>
 
+IMPL_INTERFACE_BEGIN(WaitCond, ToString, waitcond, ToString)
+    TOSTRING_ITEM(100, u8"%s: key(of CompId) '%u', value(of i32) '%d'", type_string, obj->key, obj->value);
+IMPL_INTERFACE_END(WaitCond, ToString, waitcond, ToString)
+
+IMPL_INTERFACE_BEGIN(QueryIter, ToString, query, ToString)
+    const utf8* waitcond_string = waitcond_to_string_fn(obj->conds);
+    TOSTRING_ITEM(128, u8"%s: %s, ", type_string, waitcond_string);
+    arrfree(waitcond_string);
+    // TODO change them to stringify the arrays instead
+    TOSTRING_ITEM(200, u8"lengths (select %lld), (option %lld), (with %lld), (without %lld), (all %lld), (offsets %lld), (results %lld), ",
+        arrlen(obj->select), arrlen(obj->option), arrlen(obj->with), arrlen(obj->without), hmlen(obj->all), hmlen(obj->offsets), arrlen(obj->results));
+    TOSTRING_ITEM(40, u8"i %llu, stride %llu, ", obj->i, obj->stride);
+    TOSTRING_ARRAY_BEGIN(64, select, arrlen(obj->select))
+        TOSTRING_ARRAY_FMT_ELEM("%u, ", arr_ptr[i])
+    TOSTRING_ARRAY_END(select);
+    TOSTRING_ARRAY_BEGIN(64, option, arrlen(obj->option))
+        TOSTRING_ARRAY_FMT_ELEM("%u, ", arr_ptr[i])
+    TOSTRING_ARRAY_END(option);
+    TOSTRING_ARRAY_BEGIN(64, with, arrlen(obj->with))
+        TOSTRING_ARRAY_FMT_ELEM("%u, ", arr_ptr[i])
+    TOSTRING_ARRAY_END(with);
+    TOSTRING_ARRAY_BEGIN(64, without, arrlen(obj->without))
+        TOSTRING_ARRAY_FMT_ELEM("%u, ", arr_ptr[i])
+    TOSTRING_ARRAY_END(without);
+    TOSTRING_ARRAY_BEGIN(64, all, hmlen(obj->all))
+        TOSTRING_ARRAY_FMT_ELEM("%u, ", arr_ptr[i].key)
+    TOSTRING_ARRAY_END(all);
+    TOSTRING_ARRAY_BEGIN(128, offsets, hmlen(obj->offsets))
+        TOSTRING_ARRAY_FMT_ELEM("(%u - %d), ", arr_ptr[i].key, arr_ptr[i].value)
+    TOSTRING_ARRAY_END(offsets);
+    TOSTRING_ARRAY_BEGIN(512, results, arrlen(obj->results))
+        TOSTRING_ARRAY_FMT_ELEM("%p, ", arr_ptr[i])
+    TOSTRING_ARRAY_END(results);
+IMPL_INTERFACE_END(QueryIter, ToString, query, ToString)
+
 QueryIter query_create(const WaitCond* conds) {
 	return (QueryIter) {
 		conds, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0
@@ -27,9 +62,13 @@ void query_init(QueryIter* q_iter) {
 }
 
 bool query_next(QueryIter* q_iter, QueryTarget* target) {
+    if (!target) {
+        LOG_ERROR_LIMITED(10, u8"Target arg cannot be nullptr");
+        return false;
+    }
 	if (!q_iter->stride) {
 	    // 没stride可能是没初始化
-		LOG_ERROR_LIMITED(20, u8"Query may not be initialized: iter stride is 0");
+		LOG_ERROR_LIMITED(10, u8"Query may not be initialized: iter stride is 0");
 	    *target = nullptr;
 	    return false;
 	}
@@ -37,7 +76,7 @@ bool query_next(QueryIter* q_iter, QueryTarget* target) {
 	    *target = nullptr;
 		return false;
 	}
-	*target = q_iter->results[q_iter->i];
+	*target = (QueryTarget)(q_iter->results + q_iter->i);
 	q_iter->i += q_iter->stride;
 	return *target ? true : false;
 }
@@ -55,7 +94,7 @@ void* query_fetch(QueryTarget target, i32 offset) {
 	    LOG_ERROR_LIMITED(20, u8"Failed to fetch: target may be nullptr or query hasn't executed");
 	    return nullptr;
 	}
-	return target + offset;
+	return ((QueryTarget*)target)[offset];
 }
 
 void query_free(QueryIter* q_iter) {
@@ -113,7 +152,7 @@ bool query_execute(QueryIter* q_iter) {
 	usize outer_i;
 	const CompType* type = find_shortest_comp_arr(q_iter, &outer_i, &is_outer_select);
 	if (!type) {
-	    LOG_ERROR_LIMITED(20, u8"Shortest comp type is null, please make sure the comps are registered and query has been initialized");
+	    LOG_ERROR_LIMITED(10, u8"Shortest comp type is null, please make sure the comps are registered and query has been initialized");
 		return false;
 	}
 	hmfree(q_iter->offsets); // 清除可能的脏数据
@@ -128,6 +167,7 @@ bool query_execute(QueryIter* q_iter) {
 
 		size_t counter = 0;
 		if (is_outer_select) {
+			arrput(ids, q_iter->select[outer_i]);
 			arrput(results, type->dense_set + type->sparse_set[e] * type->comp_size);
 			counter++;
 		}
@@ -290,7 +330,6 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e) {
 	End:
 		failed = true;
 	}
-	arrfree(results);
 	arrfree(ids);
 	if (failed) return nullptr;
 	return results;

@@ -17,15 +17,22 @@ typedef struct FontEntry {
 
 DECLARE_HACKER_COPIED(FontReg, font_reg)
 
+typedef struct Utf8TileValue {
+    TextureHandle texture;
+    f32 aspect;
+} Utf8TileValue;
+
 typedef struct Utf8TileEntry {
     const char* key;
-    TextureHandle value;
+    Utf8TileValue value;
 } Utf8TileEntry, *Utf8TileReg;
 
 DECLARE_HACKER_COPIED(Utf8TileReg, utf8_tile_reg)
 
+
 typedef struct Utf8TileItem {
     TextureHandle* textures;
+    f32* aspects;
     u32 font_height;
     // TODO ...字重等（至于颜色统一白色，后用tint实现文本变色）
 } Utf8TileItem;

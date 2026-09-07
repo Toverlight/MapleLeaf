@@ -60,23 +60,41 @@ void ecmd_remove_##comp_name(struct EntityCommand* self, CompId comp_id, comp_na
 // TODO 插入失败打印固定次数error日志
 #define IMPL_COMP(comp_name) \
 bool maple_entity_insert_##comp_name(CompType* type, Entity e, const comp_name* comp) { \
-    if (maple_entity_has(type->sparse_set, e)) return false; \
-    if (type->comp_size != sizeof(comp_name)) return false; \
-    if (type->comp_size == sizeof(Entity) && comp) return false; \
-    if (type->comp_size != sizeof(Entity) && !comp) return false; \
-    if (type->dense_len == ENTITY_NUM_MAX) return false; \
+    if (maple_entity_has(type->sparse_set, e)) { \
+        LOG_WARN_LIMITED(30, u8"Attempted to insert an existent component '%s'(ineffective action)", #comp_name); \
+        return false; \
+    } \
+    if (type->comp_size != sizeof(comp_name)) {  \
+        LOG_ERROR_LIMITED(30, u8"Comp size of the registered type '%s' doesn't match the actual one", #comp_name); \
+        return false; \
+    } \
+    if (type->comp_size == sizeof(Entity) && comp) { \
+        LOG_ERROR_LIMITED(30, u8"Empty comp type '%s' shouldn't receive any external data to be assigned", #comp_name); \
+        return false; \
+    } \
+    if (type->comp_size != sizeof(Entity) && !comp) { \
+        LOG_ERROR_LIMITED(30, u8"Non-empty comp type '%s' should receive a certain data to get properly initialized", #comp_name); \
+        return false; \
+    } \
+    if (type->dense_len == ENTITY_NUM_MAX) { \
+        LOG_ERROR_LIMITED(30, u8"Dense set of Component '%s' is full and cannot insert anymore", #comp_name); \
+        return false; \
+    } \
 	type->sparse_set[e] = type->dense_len; \
 	if (comp) { \
 	    void* dst = type->dense_set + type->dense_len * type->comp_size + sizeof(comp->owner); \
-		memcpy(dst, comp, type->comp_size - sizeof(comp->owner)); \
+		memcpy(dst, (void*)comp + sizeof(comp->owner), type->comp_size - sizeof(comp->owner)); \
 	} \
-	((comp_name*)(type->dense_set + type->dense_len * type->comp_size))->owner = e; \
+	((comp_name*)(type->dense_set))[type->dense_len].owner = e; \
 	type->dense_len++; \
 	return true; \
 } \
 bool maple_entity_remove_##comp_name(CompType* type, Entity e, comp_name* out) { \
 	if (!maple_entity_has(type->sparse_set, e)) return false; \
-    if (type->comp_size != sizeof(comp_name)) return false; \
+    if (type->comp_size != sizeof(comp_name)) { \
+        LOG_ERROR_LIMITED(30, u8"Comp size of the registered type '%s' doesn't match the actual one", #comp_name); \
+        return false; \
+    } \
 	if (out) memcpy(out, type->dense_set + type->sparse_set[e] * type->comp_size, type->comp_size); \
 	memcpy(type->dense_set + type->sparse_set[e] * type->comp_size, type->dense_set + (type->dense_len - 1) * type->comp_size, type->comp_size); \
 	type->sparse_set[e] = -1; \
@@ -121,5 +139,5 @@ void ecmd_remove_##comp_name(struct EntityCommand* self, CompId comp_id, comp_na
 	} \
 }
 
-#define ecmd_insert(comp_name, comp_data, success) ecmd_insert_fn(_obj_self, comp_id(#comp_name), (comp_data), (success))
-#define ecmd_remove(comp_name, out, success) ecmd_remove_fn(_obj_self, comp_id(#comp_name), (out), (success))
+#define ecmd_insert(comp_name, comp_data, success) ecmd_insert_##comp_name(_obj_self, comp_id(comp_name), (comp_data), (success))
+#define ecmd_remove(comp_name, out, success) ecmd_remove_##comp_name(_obj_self, comp_id(comp_name), (out), (success))

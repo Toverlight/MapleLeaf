@@ -2,10 +2,15 @@
 #include <maple/basic_types.h>
 #include <maple/comp_types.h>
 #include <stddef.h>
+#include <maple/tools.h>
+#include <maple/traits/to_string.h>
+
 typedef struct WaitCond {
 	CompId key; // 组件id
 	i32 value; // 到对应条件容器字段的偏移量
 } WaitCond;
+
+DECLARE_INTERFACE(WaitCond, ToString, waitcond)
 
 typedef struct IdOffsetEntry {
 	CompId key;
@@ -35,6 +40,8 @@ typedef struct QueryIter {
 	usize stride; // 步长
 } QueryIter;
 
+DECLARE_INTERFACE(QueryIter, ToString, query)
+
 QueryIter query_create(const WaitCond* conds);
 
 #define Q_SELECT(comp_name) \
@@ -55,8 +62,18 @@ QueryIter query_create(const WaitCond* conds);
 void query_init(QueryIter* q_iter);
 #define QUERY_INIT(q_iter) query_init(q_iter)
 
+/// The outputed `target` point to the address of element in results array. The address is the first address of the k-th result bundle.
+///
+/// 'result bundle' is elems stored close together sequentially in results and each bundle belongs to the same entity.
+///
+/// 'k' is the times this Next function called for.
 bool query_next(QueryIter* q_iter, QueryTarget* target);
 i32 maple_query_id_offset(QueryIter* q_iter, const char* comp_name); // 返回-1代表非法
+
+/// The taken `target` is the k-th result bundle's head address.
+///
+/// `offset` determines the address of which kind of component you mean to pick up in current result bundle.
+/// It's found mediately by helper macro `Q_FETCH`.
 void* query_fetch(QueryTarget target, i32 offset);
 
 #define Q_NEXT(q_iter, target) query_next(q_iter, target)
@@ -78,7 +95,7 @@ QueryTarget* query_get(QueryIter* q_iter, Entity e);
 
 #define Q_GET_BEGIN(q_iter, e, target) \
 do { QueryTarget* target##_ptr = query_get(q_iter, e); \
-	QueryTarget target = target##_ptr ? *target##_ptr : NULL;
+	QueryTarget target = (QueryTarget)target##_ptr;
 
 #define Q_GET_END(target) arrfree(target##_ptr); \
 } while(0);

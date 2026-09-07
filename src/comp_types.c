@@ -68,6 +68,7 @@ CompId reg_comp_fn(const char* name, usize comp_size, CompFreeFn free_fn) {
 			.comp_size = comp_size,
 			.free_fn = free_fn
 		};
+		memset(type.sparse_set, -1, ENTITY_NUM_MAX * sizeof(i32));
 		hmput(comp_type_reg, id, type);
 	} else [[clang::unlikely]] {
 		LOG_ERROR(u8"Wrongly occupied new comp id, for '%s'", name);

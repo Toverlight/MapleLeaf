@@ -32,6 +32,7 @@ typedef enum : u32 {
 } Layout;
 
 // prefix 'cnode'
+// TODO 无布局的node的center语义空白。引入Transform决定
 typedef struct ComputedNode {
     f32 half_width;
     f32 half_height;
@@ -78,7 +79,7 @@ DEFINE_INTERFACE_BEGIN(Node, Default, node)
     node_df.preferred_half_height = 0.0f;
     node_df.font_name = nullptr;
     node_df.font_height = 12;
-    node_df.font_forecolor = (ColorRgba){0,0,0,0};
+    node_df.font_forecolor = (ColorRgba){248, 92, 57, 255}; // FIXME now orange-like
 DEFINE_INTERFACE_END(Node, Default, node)
 bool node_add_child(Node* node, Node* child);
 bool node_remove_child(Node* node, Node* child);
@@ -109,11 +110,13 @@ typedef struct ComputedText {
     // utf8 characters (font atlas) sequence
     // FIXME not only left to right? multi-lines and etc?
     TextureHandle* textures;
+    f32* aspects;
     f32 half_width;
     f32 half_height;
 } ComputedText;
 DEFINE_INTERFACE_BEGIN(ComputedText, Default, ctext)
     ctext_df.textures = nullptr;
+    ctext_df.aspects = nullptr;
     ctext_df.half_width = 0.0f;
     ctext_df.half_height = 0.0f;
 DEFINE_INTERFACE_END(ComputedText, Default, ctext)
@@ -129,6 +132,7 @@ DEFINE_INTERFACE_BEGIN(Text, Default, text)
     text_df.computed = ctext_default_fn();
     text_df.content = nullptr;
     text_df.content_changed = false;
+    text_df.size_changed = false; // FIXME In test
 DEFINE_INTERFACE_END(Text, Default, text)
 // Text的content修改须通过该方法，以确保纹理tiles被正常更新
 static inline void text_set_content(Text* text, const utf8* utf8_string) {

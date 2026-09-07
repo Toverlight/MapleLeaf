@@ -11,35 +11,49 @@ IMPL_HACKER_COPIED(FontReg, font_reg)
 IMPL_HACKER_COPIED(Utf8TileReg, utf8_tile_reg)
 
 FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize) {
+    DLOG_LIMITED(20, u8"Loading font '%s' ...", (const char*)utf8_font_path);
     // TODO 考虑ptsize判断，防止加载过大的字体
-    isize i = shgeti(font_reg, (const char*)utf8_font_path);
-    if (i >= 0) return font_reg[i].value;
-    TTF_Font* font = TTF_OpenFont((const char*)utf8_font_path, ptsize);
-    if (!font) {
-        LOG_ERROR(u8"Font load failed: %s", SDL_GetError());
-    }
-    FontHandle handle = font;
     char key[256];
     i32 written = snprintf(key, sizeof(key), "%s|%03d", (const char*)utf8_font_path, ptsize);
     if (written >= (i32)sizeof(key)) {
-        LOG_ERROR_LIMITED(10, u8"Key string buffer overflow: as for font '%s'", (const char*)utf8_font_path);
+        LOG_ERROR_LIMITED(10, u8"Font load failed: Key string buffer overflow: as for font '%s'", (const char*)utf8_font_path);
+        return nullptr;
     }
-    DLOG(u8"Font load successfully: path|ptsize : %s", key);
+    isize i = shgeti(font_reg, key);
+    if (i >= 0) {
+        DLOG_LIMITED(10, u8"Cached font found: path|ptsize : %s", key);
+        return font_reg[i].value;
+    }
+    TTF_Font* font = TTF_OpenFont((const char*)utf8_font_path, ptsize);
+    if (!font) {
+        LOG_ERROR_LIMITED(10, u8"Font load failed: %s", SDL_GetError());
+        return nullptr;
+    }
+    FontHandle handle = font;
+    DLOG_LIMITED(20, u8"Font load successfully: path|ptsize : %s", key);
     shput(font_reg, key, handle);
     return handle;
 }
 
 // TODO 对于失败的情况，可以考虑添加对应大小的占位符纹理（就像乱码文本都是不明方块字符一样）
 void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
+    if (bytes > 4) { // Considering bytes beyond 4 is not allowed and theoritically unreachable, don't generate the default texture
+        LOG_ERROR_LIMITED(10, u8"Invalid character that has bytes '%llu' beyond 4. Utf8-encoded character bounds in 4 bytes", bytes);
+        return;
+    }
     // TODO font height 判断，防止加载过大的文本纹理
     Utf8TileItem* out_fitted = (Utf8TileItem*)data;
-    char key[48];
+    char key[24];
+    char utf8_char_copied[5];
     memcpy(key, utf8_char, bytes);
+    memcpy(utf8_char_copied, utf8_char, bytes);
+    utf8_char_copied[bytes] = '\0';
+    DLOG_LIMITED(10, u8"Loading utf8 tile for char '%s'...", utf8_char_copied);
     i32 written = snprintf(key + bytes, sizeof(key) - bytes, "|%03d", out_fitted->font_height);
     if (bytes + written >= (i32)sizeof(key)) {
-        char err_utf8char[5];
-        memcpy(err_utf8char, utf8_char, bytes);
-        LOG_ERROR_LIMITED(100, u8"Key string buffer overflow: as for utf8 char '%s'", err_utf8char);
+        LOG_ERROR_LIMITED(100,
+            u8"Failed to create utf8 tile: Key string buffer overflow: as for utf8 char '%s' attempted to use font height '%u'",
+            utf8_char_copied, out_fitted->font_height);
         // TODO placeholder texture added
         return;
     }
@@ -49,21 +63,26 @@ void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
         // 键的拼接方式：<utf8 char>|<font_height>（暂定u8'|'作为特殊字符）
         // 成功：更新reg；失败：error并返回nullptr
         // FIXME text纹理大小的分级处理由外部完成。类似mipmap多级清晰度的以后优化
+        DLOG_LIMITED(10, u8"Loading utf8 tile of key '%s'...", key);
         FontHandle font_handle = maple_load_font(MAPLE_ASSET(u8"fonts/SOURCEHANSANSSC-NORMAL-2.OTF"), out_fitted->font_height);
         SDL_Color color = { 255, 255, 255, 255 };
-        SDL_Surface* surface = TTF_RenderText_Blended(font_handle, (const char*)utf8_char, bytes, color);
+        SDL_Surface* surface = TTF_RenderText_Blended(font_handle, (const char*)utf8_char_copied, bytes, color);
         if (!surface) {
-            LOG_ERROR_LIMITED(100, u8"Failed to create utf8 tile '%s'", (const char*)utf8_char);
+            LOG_ERROR_LIMITED(100, u8"Failed to create utf8 tile '%s'", (const char*)utf8_char_copied);
             SDL_DestroySurface(surface);
             // TODO placeholder texture added
             return;
         }
         TextureHandle texture_handle = SDL_CreateTextureFromSurface(app_get()->renderer, surface);
+        f32 aspect = (f32)surface->w / (f32)surface->h;
         SDL_DestroySurface(surface);
-        shput(utf8_tile_reg, key, texture_handle);
+        Utf8TileValue utf8_tile_value = (Utf8TileValue){ texture_handle, aspect };
+        shput(utf8_tile_reg, key, utf8_tile_value);
         arrput(out_fitted->textures, texture_handle);
+        arrput(out_fitted->aspects, aspect);
     } else {
-        arrput(out_fitted->textures, utf8_tile_reg[i].value);
+        arrput(out_fitted->textures, utf8_tile_reg[i].value.texture);
+        arrput(out_fitted->aspects, utf8_tile_reg[i].value.aspect);
     }
 }
 
@@ -76,13 +95,14 @@ void maple_unload_fonts(void) {
 
 void maple_unload_utf8_tiles(void) {
     for (isize i = 0; i < shlen(utf8_tile_reg); i++) {
-        SDL_DestroyTexture(utf8_tile_reg[i].value);
+        SDL_DestroyTexture(utf8_tile_reg[i].value.texture);
     }
     shfree(utf8_tile_reg);
 }
 
 void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data) {
     if (!utf8_string) return;
+    DLOG_ONCE(u8"Function entered");
     mbstate_t state = {0};
     const utf8 *ptr = utf8_string;
     char32_t cp;
@@ -116,6 +136,7 @@ void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data) {
             ptr += bytes;
         }
     }
+    DLOG_ONCE(u8"Function exiting");
 }
 
 // log enclosure
