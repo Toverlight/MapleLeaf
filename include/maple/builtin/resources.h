@@ -1,6 +1,7 @@
 #pragma once
 
 #include <maple/resource.h>
+#include <maple/builtin/sdl3_layer.h>
 #include <maple/basic_types.h>
 #include <maple/tools.h>
 #include <maple/traits/default.h>
@@ -36,12 +37,11 @@ DEFINE_INTERFACE_END(Res_TimeDelta, Default, res_time_delta)
 #define get_delta_ms() res_get(Res_TimeDelta, dms)
 #define get_delta_s() res_get(Res_TimeDelta, ds)
 
-// TODO 获取时间失败error日志
 #define get_current_ns() \
 ({ \
     SDL_Time ticks = {}; \
     if (!SDL_GetCurrentTime(&ticks)) { \
-         \
+        LOG_ERROR_LIMITED(10, u8"Failed to get time. SDL Error: %s", SDL_GetError()); \
     } \
     ticks; \
 })
@@ -68,26 +68,16 @@ typedef enum : u8 {
 
 // TODO *,last_*的交换更新。待接入SDL
 DECLARE_RESOURCE_BEGIN(Res_InputMouse)
-    f32 x;
-    f32 y;
-    f32 last_x;
-    f32 last_y;
-    i32 wheel;
-    i32 last_wheel;
-    bool buttons[Maple_MouseButtonMax];
-    bool last_buttons[Maple_MouseButtonMax];
+    LAST_FIELD(f32, x);
+    LAST_FIELD(f32, y);
+    LAST_FIELD(f32, wheel);
+    LAST_FIELD(bool, buttons[Maple_MouseButtonMax]);
 DECLARE_RESOURCE_END(Res_InputMouse)
 DEFINE_INTERFACE_BEGIN(Res_InputMouse, Default, res_input_mouse)
-    res_input_mouse_df.x = 0.0f;
-    res_input_mouse_df.y = 0.0f;
-    res_input_mouse_df.last_x = 0.0f;
-    res_input_mouse_df.last_y = 0.0f;
-    res_input_mouse_df.wheel = 0;
-    res_input_mouse_df.last_wheel = 0;
+    SET_LAST_FIELD(res_input_mouse_df, x, 0.0f);
+    SET_LAST_FIELD(res_input_mouse_df, y, 0.0f);
+    SET_LAST_FIELD(res_input_mouse_df, wheel, 0.0f);
     for (i32 i = 0; i < Maple_MouseButtonMax; i++) {
-        res_input_mouse_df.buttons[i] = false;
-    }
-    for (i32 i = 0; i < Maple_MouseButtonMax; i++) {
-        res_input_mouse_df.last_buttons[i] = false;
+        SET_LAST_FIELD(res_input_mouse_df, buttons[i], false);
     }
 DEFINE_INTERFACE_END(Res_InputMouse, Default, res_input_mouse)

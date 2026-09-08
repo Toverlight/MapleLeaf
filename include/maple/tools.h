@@ -31,3 +31,30 @@ do { \
 #define IMPL_INTERFACE_END(type, interface, prefix, trait) IMPL_INTERFACE_##interface##_##trait##_END(type, prefix)
 #define DEFINE_INTERFACE_BEGIN(type, interface, prefix) DEFINE_INTERFACE_##interface##_BEGIN(type, prefix)
 #define DEFINE_INTERFACE_END(type, interface, prefix) DEFINE_INTERFACE_##interface##_END(type, prefix)
+
+#define LAST_FIELD(type, var) \
+type var; \
+type last_##var
+
+#define SET_LAST_FIELD(obj, field, value) do { \
+    (obj).field = value; \
+    (obj).last_##field = value; \
+} while(0)
+#define SET_LAST_FIELD_PTR(obj, field, value) do { \
+    (obj)->field = value; \
+    (obj)->last_##field = value; \
+} while(0)
+#define SWAP_UPDATE_LAST_FIELD(obj, field, value) do { \
+    (obj).last_##field = (obj).field; \
+    (obj).field = (value); \
+} while(0)
+#define SWAP_UPDATE_LAST_FIELD_PTR(obj, field, value) do { \
+    (obj)->last_##field = (obj)->field; \
+    (obj)->field = (value); \
+} while(0)
+#define SYNC_LAST_FIELD(obj, field) do { \
+    (obj).last_##field = (obj).field; \
+} while(0)
+#define SYNC_LAST_FIELD_PTR(obj, field) do { \
+    (obj)->last_##field = (obj)->field; \
+} while(0)

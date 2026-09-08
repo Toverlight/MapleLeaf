@@ -23,7 +23,7 @@ DEFINE_INTERFACE_BEGIN(Transform, Default, transform)
 DEFINE_INTERFACE_END(Transform, Default, transform)
 
 typedef enum : u32 {
-    LAYOUT_INVALID,
+    LAYOUT_NONE,
 
     Layout_HorizontalBox, // left->right
     Layout_VerticalBox, // up->down
@@ -32,18 +32,19 @@ typedef enum : u32 {
 } Layout;
 
 // prefix 'cnode'
-// TODO 无布局的node的center语义空白。引入Transform决定
 typedef struct ComputedNode {
     f32 half_width;
     f32 half_height;
     f32 center_x;
     f32 center_y;
+    bool center_owned;
 } ComputedNode;
 DEFINE_INTERFACE_BEGIN(ComputedNode, Default, cnode)
     cnode_df.half_width = 0.0f;
     cnode_df.half_height = 0.0f;
     cnode_df.center_x = 0.0f;
     cnode_df.center_y = 0.0f;
+    cnode_df.center_owned = false;
 DEFINE_INTERFACE_END(ComputedNode, Default, cnode)
 
 typedef struct ColorRgba {
@@ -53,7 +54,16 @@ typedef struct ColorRgba {
     u8 a;
 } ColorRgba;
 
-// prefix 'node'
+/// prefix 'node'
+///
+/// Now Node's center is determined by as follows, 3 priorities:
+///
+/// 1. Its parent has a certain layout. By its parent.
+///
+/// 2. It has no parent or is root. And has a Transform component. By Transform.
+///
+/// 3. Else case: as child, by parent center; as root, by default value.
+///
 DECLARE_COMP_BEGIN(Node)
     ComputedNode computed;
     struct Node* parent;
@@ -67,6 +77,7 @@ DECLARE_COMP_BEGIN(Node)
     u32 font_height;
     ColorRgba font_forecolor;
 
+    // TODO border properties. And for button, if no border properties or images, set default border
     // TODO ...
 DECLARE_COMP_END(Node)
 DEFINE_INTERFACE_BEGIN(Node, Default, node)
@@ -74,7 +85,7 @@ DEFINE_INTERFACE_BEGIN(Node, Default, node)
     node_df.parent = nullptr;
     node_df.children = nullptr;
     node_df.weight = 1;
-    node_df.layout = LAYOUT_INVALID;
+    node_df.layout = LAYOUT_NONE;
     node_df.preferred_half_width = 0.0f;
     node_df.preferred_half_height = 0.0f;
     node_df.font_name = nullptr;
@@ -92,16 +103,18 @@ typedef enum : u8 {
     BtnState_Pressed,
 } BtnState;
 
-typedef void(*BtnCallback)(void);
+typedef void(*BtnCallback)(void* data);
 
 // prefix 'btn'
 DECLARE_COMP_BEGIN(Button)
     BtnState state;
     BtnCallback callback;
+    void* data;
 DECLARE_COMP_END(Button)
 DEFINE_INTERFACE_BEGIN(Button, Default, btn)
     btn_df.state = BtnState_Idle;
     btn_df.callback = nullptr;
+    btn_df.data = nullptr;
 DEFINE_INTERFACE_END(Button, Default, btn)
 
 // prefix 'ctext'

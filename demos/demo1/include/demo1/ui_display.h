@@ -2,4 +2,4 @@
 
 #include <maple.h>
 
-void ui_spawn(void);
+void demo1_ui_spawn(void);

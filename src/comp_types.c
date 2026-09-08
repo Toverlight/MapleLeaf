@@ -14,7 +14,7 @@ bool maple_entity_insert(CompType* type, const void* data, Entity e) {
 bool maple_entity_remove(CompType* type, Entity e, void* out) {
 	if (!maple_entity_has(type->sparse_set, e)) return false;
 	if (out) memcpy(out, type->dense_set + type->sparse_set[e] * type->comp_size, type->comp_size);
-	type->free_fn(type->dense_set + type->sparse_set[e] * type->comp_size);
+	if (type->free_fn) type->free_fn(type->dense_set + type->sparse_set[e] * type->comp_size);
 	type->dense_len--;
 	memcpy(type->dense_set + type->sparse_set[e] * type->comp_size, type->dense_set + type->dense_len * type->comp_size, type->comp_size);
 	type->sparse_set[e] = -1;
@@ -79,7 +79,8 @@ CompId reg_comp_fn(const char* name, usize comp_size, CompFreeFn free_fn) {
 void maple_unreg_comp_all(void) {
     for (isize i = 0; i < hmlen(comp_type_reg); i++) {
         for (isize j = 0; j < comp_type_reg[i].value.dense_len; j++) {
-            comp_type_reg[i].value.free_fn(comp_type_reg[i].value.dense_set + j * comp_type_reg[i].value.comp_size);
+            if (comp_type_reg[i].value.free_fn)
+                comp_type_reg[i].value.free_fn(comp_type_reg[i].value.dense_set + j * comp_type_reg[i].value.comp_size);
         }
         free(comp_type_reg[i].value.dense_set);
         comp_type_reg[i].value.dense_set = nullptr;

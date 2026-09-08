@@ -8,14 +8,40 @@
 #include <maple/comp_types.h>
 #include <maple/builtin/sdl3_layer.h>
 
-void maple_df_event_pump(void) {
+void maple_df_event_pumper(void) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_EVENT_QUIT) {
-            DLOG(u8"SDL_EVENT_QUIT received, stopping main loop");
-            app_get()->condition = false;
+        switch (event.type) {
+            case SDL_EVENT_QUIT:
+                DLOG(u8"SDL_EVENT_QUIT received, stopping main loop");
+                app_get()->condition = false;
+                break;
+            case SDL_EVENT_MOUSE_MOTION:
+                res_swap_update(Res_InputMouse, x, event.motion.x);
+                res_swap_update(Res_InputMouse, y, event.motion.y);
+                break;
+            case SDL_EVENT_MOUSE_WHEEL:
+                res_swap_update(Res_InputMouse, wheel, event.wheel.y);
+                break;
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            case SDL_EVENT_MOUSE_BUTTON_UP:
+                switch (event.button.button) {
+                    case SDL_BUTTON_LEFT:
+                        res_swap_update(Res_InputMouse, buttons[MouseButton_Left], event.button.down);
+                        break;
+                    case SDL_BUTTON_RIGHT:
+                        res_swap_update(Res_InputMouse, buttons[MouseButton_Right], event.button.down);
+                        break;
+                    case SDL_BUTTON_MIDDLE:
+                        res_swap_update(Res_InputMouse, buttons[MouseButton_Middle], event.button.down);
+                        break;
+                }
+                break;
+                // TODO keyboard and other mouse inputs -> to Res & Signal
+            default:
+                // DLOG_LIMITED(10, u8"Unsupported event type '%u'. Check if invalid certainly or coming soon", event.type);
+                break;
         }
-        // TODO keyboard and mouse inputs -> to Res & Signal
     }
 }
 
@@ -67,6 +93,10 @@ static void maple_update_vertical_box(Node* node) {
 
 static void maple_update_none_layout(Node* node) {
     ComputedNode* computed = &node->computed;
+    if (!computed->center_owned && node->parent) {
+        computed->center_x = node->parent->computed.center_x;   // 继承父center
+        computed->center_y = node->parent->computed.center_y;
+    }
     if (computed->half_width < 1e-2f || computed->half_height < 1e-2f) {
         computed->half_width = node->preferred_half_width;
         computed->half_height = node->preferred_half_height;
@@ -102,18 +132,36 @@ static void maple_node_update_tree(Node* root) {
 }
 
 void maple_df_node_computer(void) {
-    CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg);
-    isize i = hmgeti(comp_type_reg, comp_id(Node));
-    if (i < 0) {
-        // error: 未注册的组件Node
-        LOG_ERROR_ONCE(u8"Unregistered component 'Node'");
-        return;
-    }
-    for (isize j = 0; j < comp_type_reg[i].value.dense_len; j++) {
-        Node* node = &comp_type_reg[i].value.dense_set[j * sizeof(Node)];
-        if (node->parent) continue; // 从“根”节点（可能多个）开始
+    QueryIter query = QUERY(
+        Q_SELECT(Node),
+        Q_OPTION(Transform)
+    );
+    QUERY_INIT(&query);
+    Q_EXEC(&query);
+    QueryTarget target;
+    while (Q_NEXT(&query, &target)) {
+        static bool log_flag_next = false;
+        if (!log_flag_next) {
+            const utf8* query_next_str = query_to_string_fn(&query);
+            DLOG_ONCE(u8"Query advanced the first step: %s", query_next_str);
+            arrfree(query_next_str);
+            log_flag_next = true;
+        }
+        Node* node = (Node*)Q_FETCH(&query, target, Node);
+        const Transform* transform = (Transform*)Q_FETCH(&query, target, Transform);
+
+        if (transform) {
+            node->computed.center_x = transform->px;
+            node->computed.center_y = transform->py;
+            node->computed.center_owned = true;
+        } else {
+            node->computed.center_owned = false;
+        }
+
+        if (node->parent) continue;
         maple_node_update_tree(node);
     }
+    QUERY_FREE(&query);
 }
 
 void maple_df_btn_processor(void) {
@@ -135,17 +183,20 @@ void maple_df_btn_processor(void) {
             (Vec2){computed->center_x, computed->center_y},
             (Vec2){res_input_mouse->x, res_input_mouse->y}
         );
-        if (in_bound) {
+        if (in_bound) { // State changing
             if (res_input_mouse->buttons[MouseButton_Left]) {
                 button->state = BtnState_Pressed;
             } else {
                 button->state = BtnState_Hovered;
-                if (res_input_mouse->last_buttons[MouseButton_Left]) {
-                    if (button->callback) button->callback();
-                }
             }
         } else {
             button->state = BtnState_Idle;
+        }
+        if (in_bound) { // Click judging
+            if (!res_input_mouse->buttons[MouseButton_Left]
+                && res_input_mouse->last_buttons[MouseButton_Left]) {
+                if (button->callback) button->callback(button->data);
+            }
         }
     }
     QUERY_FREE(&query);
@@ -221,6 +272,17 @@ void maple_df_text_tiles_updater(void) {
     QUERY_FREE(&query);
 }
 
+void maple_input_resources_syncer(void) {
+    // InputMouse
+    res_sync_last(Res_InputMouse, x);
+    res_sync_last(Res_InputMouse, y);
+    res_sync_last(Res_InputMouse, wheel);
+    for (i32 i = 0; i < Maple_MouseButtonMax; i++) {
+        res_sync_last(Res_InputMouse, buttons[i]);
+    }
+    // TODO other resources those with Last Fields to be synced
+}
+
 void maple_df_render_start(void) {
     RendererHandle renderer = app_get()->renderer;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -292,12 +354,14 @@ void default_plugin(struct Application* app) {
     reg_comp(Button, nullptr);
     reg_comp(Text, maple_text_free);
 
-	arrins(app->schedules[PreUpdate], 0, maple_df_event_pump); // 注册事件泵系统
+	arrins(app->schedules[PreUpdate], 0, maple_df_event_pumper); // 注册事件泵系统
 	arrins(app->schedules[PreUpdate], 1, maple_df_message_buf_swapper); // 注册消息缓冲区交换系统
 
 	arrput(app->schedules[PostUpdate], maple_df_node_computer); // 注册节点实际属性计算系统
 	arrput(app->schedules[PostUpdate], maple_df_btn_processor); // 注册按钮处理系统
 	arrput(app->schedules[PostUpdate], maple_df_text_tiles_updater); // 注册文本更新系统
+	// TODO other PostUpdate systems...
+	arrput(app->schedules[PostUpdate], maple_input_resources_syncer); // 注册资源滞后域同步系统
 
 	arrput(app->schedules[Render], maple_df_render_start); // 注册渲染开始
 	// TODO other rendering systems (must be) before ui
