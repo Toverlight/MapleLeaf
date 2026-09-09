@@ -4,6 +4,7 @@
 #include <maple/traits/serde.h>
 #include <maple/traits/default.h>
 #include <maple/builtin/sdl3_layer.h>
+#include <maple/builtin/shapes.h>
 
 // prefix 'transform'
 DECLARE_COMP_BEGIN(Transform)
@@ -33,17 +34,11 @@ typedef enum : u32 {
 
 // prefix 'cnode'
 typedef struct ComputedNode {
-    f32 half_width;
-    f32 half_height;
-    f32 center_x;
-    f32 center_y;
+    Shape_Rect rect;
     bool center_owned;
 } ComputedNode;
 DEFINE_INTERFACE_BEGIN(ComputedNode, Default, cnode)
-    cnode_df.half_width = 0.0f;
-    cnode_df.half_height = 0.0f;
-    cnode_df.center_x = 0.0f;
-    cnode_df.center_y = 0.0f;
+    cnode_df.rect = (Shape_Rect) { (Vec2){0.0f, 0.0f}, (Vec2){0.0f, 0.0f} };
     cnode_df.center_owned = false;
 DEFINE_INTERFACE_END(ComputedNode, Default, cnode)
 
@@ -76,6 +71,12 @@ DECLARE_COMP_BEGIN(Node)
     const utf8* font_name;
     u32 font_height;
     ColorRgba font_forecolor;
+    // original colors
+    // ColorRgba bgcolor;
+    // border
+    // f32 border_thickness;
+    // f32 border_radius;
+    // ColorRgba border_color;
 
     // TODO border properties. And for button, if no border properties or images, set default border
     // TODO ...
@@ -124,22 +125,20 @@ typedef struct ComputedText {
     // FIXME not only left to right? multi-lines and etc?
     TextureHandle* textures;
     f32* aspects;
-    f32 half_width;
-    f32 half_height;
+    Shape_Rect rect;
 } ComputedText;
 DEFINE_INTERFACE_BEGIN(ComputedText, Default, ctext)
     ctext_df.textures = nullptr;
     ctext_df.aspects = nullptr;
-    ctext_df.half_width = 0.0f;
-    ctext_df.half_height = 0.0f;
+    ctext_df.rect = (Shape_Rect) { (Vec2){0.0f, 0.0f}, (Vec2){0.0f, 0.0f} };
 DEFINE_INTERFACE_END(ComputedText, Default, ctext)
 
 // prefix 'text'
 DECLARE_COMP_BEGIN(Text)
     ComputedText computed;
     const utf8* content;
-    bool content_changed;
-    bool size_changed;
+    bool content_changed; // Detect whether tile sequence has been changed
+    bool size_changed; // Detect whether computed rect has been changed
 DECLARE_COMP_END(Text)
 DEFINE_INTERFACE_BEGIN(Text, Default, text)
     text_df.computed = ctext_default_fn();
@@ -159,3 +158,38 @@ static inline Text text_new(const utf8* utf8_string) {
     return text;
 }
 void maple_text_free(void* comp);
+
+typedef struct DDSCEntry {
+    CompId key;
+    ColorRgba value;
+} DDSCEntry, *DDSCMap;
+
+/// prefix 'dd'
+///
+/// Shading color controls the draw color of the line or inner part. Shading is disabled when the corresponding alpha is 0.
+///
+/// This display layer is above the debug target. Sometimes consider make semi-transparent to let the both show.
+DECLARE_COMP_BEGIN(DebugDisplay)
+    DDSCMap shading_line_colors;
+    DDSCMap shading_fill_colors;
+DECLARE_COMP_END(DebugDisplay)
+DEFINE_INTERFACE_BEGIN(DebugDisplay, Default, dd)
+    dd_df.shading_line_colors = nullptr;
+    ColorRgba color_df = (ColorRgba){ 0, 0, 0, 0 }; // Transparent color. Alpha 0 also symbolizes it 'invalid'
+    hmdefault(dd_df.shading_line_colors, color_df);
+    dd_df.shading_fill_colors = nullptr;
+    hmdefault(dd_df.shading_fill_colors, color_df);
+DEFINE_INTERFACE_END(DebugDisplay, Default, dd)
+static inline void dd_set_target_shading_line_color(DebugDisplay* dd, CompId comp_id, ColorRgba color) {
+    hmput(dd->shading_line_colors, comp_id, color);
+}
+static inline void dd_set_target_shading_fill_color(DebugDisplay* dd, CompId comp_id, ColorRgba color) {
+    hmput(dd->shading_fill_colors, comp_id, color);
+}
+static inline ColorRgba dd_get_target_shading_line_color(DebugDisplay* dd, CompId comp_id) {
+    return hmget(dd->shading_line_colors, comp_id);
+}
+static inline ColorRgba dd_get_target_shading_fill_color(DebugDisplay* dd, CompId comp_id) {
+    return hmget(dd->shading_fill_colors, comp_id);
+}
+void maple_dd_free(void* comp);

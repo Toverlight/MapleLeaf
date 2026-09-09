@@ -6,3 +6,7 @@ thirdparty/*/*
 
 .zed/
 .cache/
+
+!**/README.md
+
+CMakeUserPresets.json

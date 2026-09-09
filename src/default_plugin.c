@@ -7,6 +7,7 @@
 #include <maple/builtin/resources.h>
 #include <maple/comp_types.h>
 #include <maple/builtin/sdl3_layer.h>
+#include <math.h>
 
 void maple_df_event_pumper(void) {
     SDL_Event event;
@@ -17,14 +18,17 @@ void maple_df_event_pumper(void) {
                 app_get()->condition = false;
                 break;
             case SDL_EVENT_MOUSE_MOTION:
+                SDL_ConvertEventToRenderCoordinates(app_get()->renderer, &event);
                 res_swap_update(Res_InputMouse, x, event.motion.x);
                 res_swap_update(Res_InputMouse, y, event.motion.y);
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
+                SDL_ConvertEventToRenderCoordinates(app_get()->renderer, &event);
                 res_swap_update(Res_InputMouse, wheel, event.wheel.y);
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
             case SDL_EVENT_MOUSE_BUTTON_UP:
+                SDL_ConvertEventToRenderCoordinates(app_get()->renderer, &event);
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
                         res_swap_update(Res_InputMouse, buttons[MouseButton_Left], event.button.down);
@@ -63,12 +67,12 @@ static void maple_update_horizontal_box(Node* node) {
         return;
     }
     // TODO 现从左往右。以后可能添加从右往左的
-    f32 cur_left = node->computed.center_x - node->computed.half_width;
+    f32 cur_left = node->computed.rect.center.x - node->computed.rect.half_size.x;
     for (isize i = 0; i < arrlen(node->children); i++) {
         Node* child = node->children[i];
-        child->computed.half_width = node->computed.half_width * (f32)child->weight / (f32)w_sum;
-        child->computed.center_x = cur_left + child->computed.half_width;
-        cur_left += child->computed.half_width * 2.0f;
+        child->computed.rect.half_size.x = node->computed.rect.half_size.x * (f32)child->weight / (f32)w_sum;
+        child->computed.rect.center.x = cur_left + child->computed.rect.half_size.x;
+        cur_left += child->computed.rect.half_size.x * 2.0f;
     }
 }
 
@@ -82,26 +86,26 @@ static void maple_update_vertical_box(Node* node) {
         return;
     }
     // TODO 现从上往下。以后可能添加从下往上的
-    f32 cur_up = node->computed.center_y - node->computed.half_height;
+    f32 cur_up = node->computed.rect.center.y - node->computed.rect.half_size.y;
     for (isize i = 0; i < arrlen(node->children); i++) {
         Node* child = node->children[i];
-        child->computed.half_height = node->computed.half_height * (f32)child->weight / (f32)w_sum;
-        child->computed.center_y = cur_up + child->computed.half_height;
-        cur_up += child->computed.half_height * 2.0f;
+        child->computed.rect.half_size.y = node->computed.rect.half_size.y * (f32)child->weight / (f32)w_sum;
+        child->computed.rect.center.y = cur_up + child->computed.rect.half_size.y;
+        cur_up += child->computed.rect.half_size.y * 2.0f;
     }
 }
 
 static void maple_update_none_layout(Node* node) {
     ComputedNode* computed = &node->computed;
-    if (!computed->center_owned && node->parent) {
-        computed->center_x = node->parent->computed.center_x;   // 继承父center
-        computed->center_y = node->parent->computed.center_y;
+    if (!computed->center_owned && node->parent) { // 继承父center
+        computed->rect.center.x = node->parent->computed.rect.center.x;
+        computed->rect.center.y = node->parent->computed.rect.center.y;
     }
-    if (computed->half_width < 1e-2f || computed->half_height < 1e-2f) {
-        computed->half_width = node->preferred_half_width;
-        computed->half_height = node->preferred_half_height;
+    if (computed->rect.half_size.x < 1e-2f || computed->rect.half_size.y < 1e-2f) {
+        computed->rect.half_size.x = node->preferred_half_width;
+        computed->rect.half_size.y = node->preferred_half_height;
         DLOG_LIMITED(20, u8"Node (of entity '%d')'s half size is automatically set to preference: (%.1f,%.1f)",
-            node->owner, computed->half_width, computed->half_height);
+            node->owner, computed->rect.half_size.x, computed->rect.half_size.y);
     }
 }
 
@@ -151,8 +155,8 @@ void maple_df_node_computer(void) {
         const Transform* transform = (Transform*)Q_FETCH(&query, target, Transform);
 
         if (transform) {
-            node->computed.center_x = transform->px;
-            node->computed.center_y = transform->py;
+            node->computed.rect.center.x = transform->px;
+            node->computed.rect.center.y = transform->py;
             node->computed.center_owned = true;
         } else {
             node->computed.center_owned = false;
@@ -179,8 +183,8 @@ void maple_df_btn_processor(void) {
         const Res_InputMouse* res_input_mouse = res_get_full_addr(Res_InputMouse);
         ComputedNode* computed = &node->computed;
         bool in_bound = check_if_point_in_rect(
-            (Vec2){computed->half_width, computed->half_height},
-            (Vec2){computed->center_x, computed->center_y},
+            (Vec2){computed->rect.half_size.x, computed->rect.half_size.y},
+            (Vec2){computed->rect.center.x, computed->rect.center.y},
             (Vec2){res_input_mouse->x, res_input_mouse->y}
         );
         if (in_bound) { // State changing
@@ -202,7 +206,6 @@ void maple_df_btn_processor(void) {
     QUERY_FREE(&query);
 }
 
-// TODO 渲染阶段的textures按顺序渲染
 void maple_df_text_tiles_updater(void) {
     DLOG_ONCE(u8"Updating text tiles...");
     QueryIter query = QUERY(
@@ -244,35 +247,45 @@ void maple_df_text_tiles_updater(void) {
             log_flag_fetch = true;
         }
 
-        // FIXME 尺寸可能还受其他属性控制
-        if (text->computed.half_width == node->computed.half_width
-        && text->computed.half_height == node->computed.half_height) {
-            text->size_changed = false;
-        } else {
-            text->computed.half_width = node->computed.half_width;
-            text->computed.half_height = node->computed.half_height;
-            text->size_changed = true;
-        }
-
-        if (text->content_changed || text->size_changed) {
-            DLOG_ONCE(u8"Entered branch 'changed'");
+        if (text->content_changed) {
+            // DLOG_ONCE(u8"Entered branch 'changed'");
             arrsetlen(text->computed.textures, 0);
             arrsetlen(text->computed.aspects, 0);
             Utf8TileItem item = (Utf8TileItem) {
                 .textures = text->computed.textures,
                 .aspects = text->computed.aspects,
-                .font_height = node->font_height };
+                .font_height = node->font_height,
+                .font_name = node->font_name };
             utf8_iter_string(text->content, maple_load_utf8_tile, &item);
             text->computed.textures = item.textures;
             text->computed.aspects = item.aspects;
             text->content_changed = false;
-            text->size_changed = false;
         }
+
+        f32 total_w = 0.0f;
+        for (isize i = 0; i < arrlen(text->computed.aspects); i++) {
+            total_w += (f32)node->font_height * text->computed.aspects[i];
+        }
+        f32 half_w = total_w * 0.5f;
+        f32 half_h = (f32)node->font_height * 0.5f;
+        if (fabsf(half_w - text->computed.rect.half_size.x) < 1e-2f ||
+            fabsf(half_h - text->computed.rect.half_size.y) < 1e-2f) {
+            text->size_changed = false;
+        } else {
+            text->size_changed = true;
+            text->computed.rect.half_size.x = half_w;
+            text->computed.rect.half_size.y = half_h;
+        }
+
+        // TODO 文本的锚点、布局等
+        // FIXME 布局暂时就是居中。之后改
+        text->computed.rect.center.x = node->computed.rect.center.x;
+        text->computed.rect.center.y = node->computed.rect.center.y;
     }
     QUERY_FREE(&query);
 }
 
-void maple_input_resources_syncer(void) {
+void maple_df_input_resources_syncer(void) {
     // InputMouse
     res_sync_last(Res_InputMouse, x);
     res_sync_last(Res_InputMouse, y);
@@ -289,52 +302,70 @@ void maple_df_render_start(void) {
     SDL_RenderClear(renderer);
 }
 
+static void render_debug_rect(RendererHandle renderer, DebugDisplay* dd, CompId id, Shape_Rect rect) {
+    ColorRgba fill_color = dd_get_target_shading_fill_color(dd, id);
+    ColorRgba line_color = dd_get_target_shading_line_color(dd, id);
+    if (fill_color.a == 0 && line_color.a == 0) return;
+    SDL_FRect dst = { rect.center.x - rect.half_size.x, rect.center.y - rect.half_size.y,
+                      2.0f * rect.half_size.x, 2.0f * rect.half_size.y };
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    if (fill_color.a != 0) {
+        SDL_SetRenderDrawColor(renderer, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        SDL_RenderFillRect(renderer, &dst);
+    }
+    if (line_color.a != 0) {
+        SDL_SetRenderDrawColor(renderer, line_color.r, line_color.g, line_color.b, line_color.a);
+        SDL_RenderRect(renderer, &dst);
+    }
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+}
+
 void maple_df_render_ui(void) {
     QueryIter query = QUERY(
-        Q_OPTION(Text)
+        Q_SELECT(Node),
+        Q_OPTION(Text),
         // TODO more ui renderables to be added
+        Q_OPTION(DebugDisplay)
     );
     QUERY_INIT(&query);
-    CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg);
-    isize i = hmgeti(comp_type_reg, comp_id(Node));
-    if (i < 0) {
-        // error: 未注册的组件Node
-        LOG_ERROR_ONCE(u8"Unregistered component 'Node'");
-        return;
-    }
-    for (isize j = 0; j < comp_type_reg[i].value.dense_len; j++) {
-        Node* node = &comp_type_reg[i].value.dense_set[j * sizeof(Node)];
-        if (node->parent) continue; // 从“根”节点（可能多个）开始
-        Entity e = node->owner;
-        Q_GET_BEGIN(&query, e, target)
-        if (target) {
-            RendererHandle renderer = app_get()->renderer;
-            ComputedNode* computed_node = &node->computed;
-            // TODO more subjects to render...(note the order)
-            Text* text = (Text*)Q_FETCH(&query, target, Text);
-            if (text) {
-                // TODO to support text texture rotation in the future, render target may be drawn as the temp one and rotated later...
-                SDL_SetRenderTarget(renderer, nullptr);
-                f32 cursor_x = computed_node->center_x - computed_node->half_width;
-                f32 top_y = computed_node->center_y - computed_node->half_height;
-                for (isize i = 0; i < arrlen(text->computed.textures); i++) {
-                    SDL_FRect dst;
-                    // FIXME is it ok to use 'computed_node->' instead of 'computed_text->'?
-                    dst.w = node->font_height * text->computed.aspects[i];
-                    dst.h = node->font_height;
-                    dst.x = cursor_x;
-                    dst.y = top_y;
-                    cursor_x += dst.w;
-                    const ColorRgba* color = &node->font_forecolor;
-                    SDL_SetTextureColorMod(text->computed.textures[i], color->r, color->g, color->b);
-                    SDL_SetTextureAlphaMod(text->computed.textures[i], color->a);
-                    SDL_RenderTexture(renderer, text->computed.textures[i], nullptr, &dst);
-                    SDL_SetTextureColorMod(text->computed.textures[i], 255, 255, 255);
-                    SDL_SetTextureAlphaMod(text->computed.textures[i], 255);
-                }
+    Q_EXEC(&query);
+    QueryTarget target;
+    while (Q_NEXT(&query, &target)) {
+        const Node* node = (Node*)Q_FETCH(&query, target, Node);
+        // if (node->parent) continue; // 从“根”节点（可能多个）开始
+
+        DebugDisplay* dd = (DebugDisplay*)Q_FETCH(&query, target, DebugDisplay);
+        RendererHandle renderer = app_get()->renderer;
+        if (dd) {
+            render_debug_rect(renderer, dd, comp_id(Node), node->computed.rect);
+        }
+
+        // TODO more subjects to render...(note the order)
+        const Text* text = (Text*)Q_FETCH(&query, target, Text);
+        if (text) {
+            // TODO to support text texture rotation in the future, render target may be drawn as the temp one and rotated later...
+            SDL_SetRenderTarget(renderer, nullptr);
+            f32 cursor_x = text->computed.rect.center.x - text->computed.rect.half_size.x;
+            f32 top_y = text->computed.rect.center.y - text->computed.rect.half_size.y;
+            for (isize i = 0; i < arrlen(text->computed.textures); i++) {
+                SDL_FRect dst;
+                dst.w = node->font_height * text->computed.aspects[i];
+                dst.h = node->font_height;
+                dst.x = cursor_x;
+                dst.y = top_y;
+                cursor_x += dst.w;
+                const ColorRgba* color = &node->font_forecolor;
+                SDL_SetTextureColorMod(text->computed.textures[i], color->r, color->g, color->b);
+                SDL_SetTextureAlphaMod(text->computed.textures[i], color->a);
+                SDL_RenderTexture(renderer, text->computed.textures[i], nullptr, &dst);
+                // SDL_SetTextureColorMod(text->computed.textures[i], 255, 255, 255);
+                // SDL_SetTextureAlphaMod(text->computed.textures[i], 255);
+            }
+
+            if (dd) {
+                render_debug_rect(renderer, dd, comp_id(Text), text->computed.rect);
             }
         }
-        Q_GET_END(target)
     }
     QUERY_FREE(&query);
 }
@@ -353,6 +384,7 @@ void default_plugin(struct Application* app) {
     reg_comp(Node, maple_node_free);
     reg_comp(Button, nullptr);
     reg_comp(Text, maple_text_free);
+    reg_comp(DebugDisplay, maple_dd_free);
 
 	arrins(app->schedules[PreUpdate], 0, maple_df_event_pumper); // 注册事件泵系统
 	arrins(app->schedules[PreUpdate], 1, maple_df_message_buf_swapper); // 注册消息缓冲区交换系统
@@ -361,7 +393,7 @@ void default_plugin(struct Application* app) {
 	arrput(app->schedules[PostUpdate], maple_df_btn_processor); // 注册按钮处理系统
 	arrput(app->schedules[PostUpdate], maple_df_text_tiles_updater); // 注册文本更新系统
 	// TODO other PostUpdate systems...
-	arrput(app->schedules[PostUpdate], maple_input_resources_syncer); // 注册资源滞后域同步系统
+	arrput(app->schedules[PostUpdate], maple_df_input_resources_syncer); // 注册资源滞后域同步系统
 
 	arrput(app->schedules[Render], maple_df_render_start); // 注册渲染开始
 	// TODO other rendering systems (must be) before ui

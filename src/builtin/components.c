@@ -72,3 +72,11 @@ void maple_text_free(void* comp) {
     arrfree(text->computed.textures);
     arrfree(text->computed.aspects);
 }
+
+IMPL_COMP(DebugDisplay)
+
+void maple_dd_free(void* comp) {
+    DebugDisplay* dd = (DebugDisplay*)comp;
+    hmfree(dd->shading_line_colors);
+    hmfree(dd->shading_fill_colors);
+}

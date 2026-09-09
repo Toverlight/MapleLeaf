@@ -34,6 +34,7 @@ typedef struct Utf8TileItem {
     TextureHandle* textures;
     f32* aspects;
     u32 font_height;
+    const utf8* font_name;
     // TODO ...字重等（至于颜色统一白色，后用tint实现文本变色）
 } Utf8TileItem;
 // 带缓存机制的 字体 加载

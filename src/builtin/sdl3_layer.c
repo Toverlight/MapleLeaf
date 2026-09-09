@@ -43,6 +43,9 @@ void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
     }
     // TODO font height 判断，防止加载过大的文本纹理
     Utf8TileItem* out_fitted = (Utf8TileItem*)data;
+    const utf8* font_name = (out_fitted->font_name) ?
+        (out_fitted->font_name) :
+        MAPLE_ASSET(u8"fonts/SOURCEHANSANSSC-NORMAL-2.OTF");
     char key[24];
     char utf8_char_copied[5];
     memcpy(key, utf8_char, bytes);
@@ -64,7 +67,7 @@ void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
         // 成功：更新reg；失败：error并返回nullptr
         // FIXME text纹理大小的分级处理由外部完成。类似mipmap多级清晰度的以后优化
         DLOG_LIMITED(10, u8"Loading utf8 tile of key '%s'...", key);
-        FontHandle font_handle = maple_load_font(MAPLE_ASSET(u8"fonts/SOURCEHANSANSSC-NORMAL-2.OTF"), out_fitted->font_height);
+        FontHandle font_handle = maple_load_font(font_name, out_fitted->font_height);
         SDL_Color color = { 255, 255, 255, 255 };
         SDL_Surface* surface = TTF_RenderText_Blended(font_handle, (const char*)utf8_char_copied, bytes, color);
         if (!surface) {
