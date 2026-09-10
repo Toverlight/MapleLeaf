@@ -68,6 +68,10 @@ void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
         // FIXME text纹理大小的分级处理由外部完成。类似mipmap多级清晰度的以后优化
         DLOG_LIMITED(10, u8"Loading utf8 tile of key '%s'...", key);
         FontHandle font_handle = maple_load_font(font_name, out_fitted->font_height);
+        if (!font_handle) {
+            LOG_ERROR_LIMITED(10, u8"Unable to load utf8 tile: caused by font loading failure", utf8_char_copied);
+            return;
+        }
         SDL_Color color = { 255, 255, 255, 255 };
         SDL_Surface* surface = TTF_RenderText_Blended(font_handle, (const char*)utf8_char_copied, bytes, color);
         if (!surface) {

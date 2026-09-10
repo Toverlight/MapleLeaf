@@ -1,4 +1,4 @@
-# 字体信息
+# Font Information
 
 ## 思源黑体
 
@@ -8,4 +8,4 @@ SIL Open Font License Version 1.1
 
 v2.005
 
-https://github.com/adobe-fonts/source-han-sans/releases
+[releases](https://github.com/adobe-fonts/source-han-sans/releases)
