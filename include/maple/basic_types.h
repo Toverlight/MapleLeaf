@@ -20,6 +20,8 @@ typedef float f32;
 typedef double f64;
 // 注意，该类型在utf8时表示utf8码元（一个字节），而完整的字符/字符串都需要用utf8[]或utf8*表示
 typedef char8_t utf8;
+typedef char16_t utf16;
+typedef char32_t utf32;
 
 // 实体，即ID
 typedef u32 Entity;

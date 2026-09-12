@@ -23,7 +23,7 @@ typedef struct Utf8TileValue {
 } Utf8TileValue;
 
 typedef struct Utf8TileEntry {
-    const char* key;
+    u32 key;
     Utf8TileValue value;
 } Utf8TileEntry, *Utf8TileReg;
 
@@ -40,12 +40,12 @@ typedef struct Utf8TileItem {
 // 带缓存机制的 字体 加载
 FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize);
 // 带缓存机制的 utf8 tile 加载
-void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data);
+void maple_load_utf8_tile(const utf32 cp, void* data);
 
 void maple_unload_fonts(void);
 void maple_unload_utf8_tiles(void);
 
-typedef void(*Utf8CharFn)(const utf8* utf8_char, usize bytes, void* data);
+typedef void(*Utf8CharFn)(const utf32 cp, void* data);
 
 void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data);
 

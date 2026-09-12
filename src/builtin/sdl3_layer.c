@@ -36,44 +36,39 @@ FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize) {
 }
 
 // TODO 对于失败的情况，可以考虑添加对应大小的占位符纹理（就像乱码文本都是不明方块字符一样）
-void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
-    if (bytes > 4) { // Considering bytes beyond 4 is not allowed and theoritically unreachable, don't generate the default texture
-        LOG_ERROR_LIMITED(10, u8"Invalid character that has bytes '%llu' beyond 4. Utf8-encoded character bounds in 4 bytes", bytes);
-        return;
-    }
+void maple_load_utf8_tile(const utf32 cp, void* data) {
     // TODO font height 判断，防止加载过大的文本纹理
     Utf8TileItem* out_fitted = (Utf8TileItem*)data;
     const utf8* font_name = (out_fitted->font_name) ?
         (out_fitted->font_name) :
         MAPLE_ASSET(u8"fonts/SOURCEHANSANSSC-NORMAL-2.OTF");
-    char key[24];
+
     char utf8_char_copied[5];
-    memcpy(key, utf8_char, bytes);
-    memcpy(utf8_char_copied, utf8_char, bytes);
-    utf8_char_copied[bytes] = '\0';
-    DLOG_LIMITED(10, u8"Loading utf8 tile for char '%s'...", utf8_char_copied);
-    i32 written = snprintf(key + bytes, sizeof(key) - bytes, "|%03d", out_fitted->font_height);
-    if (bytes + written >= (i32)sizeof(key)) {
-        LOG_ERROR_LIMITED(100,
-            u8"Failed to create utf8 tile: Key string buffer overflow: as for utf8 char '%s' attempted to use font height '%u'",
-            utf8_char_copied, out_fitted->font_height);
-        // TODO placeholder texture added
+    mbstate_t state = {0};
+    size_t n = c32rtomb(utf8_char_copied, cp, &state);
+    if (n == (size_t)-1) {
+        LOG_ERROR_LIMITED(10, u8"Code Point U+%04X cannot be represented", (u32)cp);
         return;
     }
-    isize i = shgeti(utf8_tile_reg, key);
+
+    utf8_char_copied[n] = '\0';
+    DLOG_LIMITED(10, u8"Loading utf8 tile for char '%s'...", utf8_char_copied);
+
+    u32 key = (u32)cp;
+    isize i = hmgeti(utf8_tile_reg, key);
     if (i < 0) {
         // SDL加载该utf8字符到纹理
         // 键的拼接方式：<utf8 char>|<font_height>（暂定u8'|'作为特殊字符）
         // 成功：更新reg；失败：error并返回nullptr
         // FIXME text纹理大小的分级处理由外部完成。类似mipmap多级清晰度的以后优化
-        DLOG_LIMITED(10, u8"Loading utf8 tile of key '%s'...", key);
+        DLOG_LIMITED(10, u8"Loading utf8 tile of key '%u'...", key);
         FontHandle font_handle = maple_load_font(font_name, out_fitted->font_height);
         if (!font_handle) {
             LOG_ERROR_LIMITED(10, u8"Unable to load utf8 tile: caused by font loading failure", utf8_char_copied);
             return;
         }
         SDL_Color color = { 255, 255, 255, 255 };
-        SDL_Surface* surface = TTF_RenderText_Blended(font_handle, (const char*)utf8_char_copied, bytes, color);
+        SDL_Surface* surface = TTF_RenderGlyph_Blended(font_handle, (u32)cp, color);
         if (!surface) {
             LOG_ERROR_LIMITED(100, u8"Failed to create utf8 tile '%s'", (const char*)utf8_char_copied);
             SDL_DestroySurface(surface);
@@ -84,7 +79,7 @@ void maple_load_utf8_tile(const utf8* utf8_char, usize bytes, void* data) {
         f32 aspect = (f32)surface->w / (f32)surface->h;
         SDL_DestroySurface(surface);
         Utf8TileValue utf8_tile_value = (Utf8TileValue){ texture_handle, aspect };
-        shput(utf8_tile_reg, key, utf8_tile_value);
+        hmput(utf8_tile_reg, key, utf8_tile_value);
         arrput(out_fitted->textures, texture_handle);
         arrput(out_fitted->aspects, aspect);
     } else {
@@ -101,10 +96,10 @@ void maple_unload_fonts(void) {
 }
 
 void maple_unload_utf8_tiles(void) {
-    for (isize i = 0; i < shlen(utf8_tile_reg); i++) {
+    for (isize i = 0; i < hmlen(utf8_tile_reg); i++) {
         SDL_DestroyTexture(utf8_tile_reg[i].value.texture);
     }
-    shfree(utf8_tile_reg);
+    hmfree(utf8_tile_reg);
 }
 
 void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data) {
@@ -137,7 +132,7 @@ void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data) {
             continue;
         } else {
             // 成功解析出 1 个字符（占用 bytes 个 char8_t 字节）
-            func(ptr, bytes, data);
+            func(cp, data);
 
             // 指针前移对应的字节数
             ptr += bytes;

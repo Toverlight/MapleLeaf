@@ -1,0 +1,565 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.6 Chrome/140.0.7339.249 Electron/38.8.0 Safari/537.36" version="29.3.6" pages="3">
+  <diagram name="Overview" id="ov1">
+    <mxGraphModel dx="1155" dy="688" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontStyle=1;fontColor=#1F2933;fillColor=none;strokeColor=none;" value="&lt;b&gt;MapleLeaf - Architecture Overview&lt;/b&gt;" vertex="1">
+          <mxGeometry height="28" width="700" x="40" y="12" as="geometry" />
+        </mxCell>
+        <mxCell id="title_sub" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#7B8794;fillColor=none;strokeColor=none;" value="C23 + SDL3 ECS engine  |  layered view: upper layers depend on lower ones, never the reverse" vertex="1">
+          <mxGeometry height="16" width="900" x="40" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="L5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B9C2CB;strokeWidth=1;dashed=1;fontSize=11;fontColor=#7B8794;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;" value="L5  Application Layer" vertex="1">
+          <mxGeometry height="62" width="1089" x="40" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_a" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=11;align=center;verticalAlign=middle;" value="demos/demo1" vertex="1">
+          <mxGeometry height="26" width="170" x="110" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_b" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAF2FB;strokeColor=#4A7EBB;fontSize=10;align=center;verticalAlign=middle;" value="main.c" vertex="1">
+          <mxGeometry height="26" width="100" x="300" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_c" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAF2FB;strokeColor=#4A7EBB;fontSize=10;align=center;verticalAlign=middle;" value="demo1_plugin.c" vertex="1">
+          <mxGeometry height="26" width="130" x="415" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_d" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAF2FB;strokeColor=#4A7EBB;fontSize=10;align=center;verticalAlign=middle;" value="ui_display.c" vertex="1">
+          <mxGeometry height="26" width="120" x="560" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_note" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=11;fontColor=#C05621;fillColor=none;strokeColor=none;fontStyle=2;" value="it only includes the facade &amp;lt;maple.h&amp;gt;" vertex="1">
+          <mxGeometry height="26" width="410" x="700" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="L4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B9C2CB;strokeWidth=1;dashed=1;fontSize=11;fontColor=#7B8794;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;" value="L4  Facade &amp; Entry Macros" vertex="1">
+          <mxGeometry height="62" width="1089" x="40" y="139" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_a" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#FFF3CD;strokeColor=#D9A400;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" value="APP_START(...)" vertex="1">
+          <mxGeometry height="26" width="130" x="110" y="161" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_b" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#FFF3CD;strokeColor=#D9A400;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" value="MAIN_LOOP(fps)" vertex="1">
+          <mxGeometry height="26" width="130" x="255" y="161" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_c" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#FFF3CD;strokeColor=#D9A400;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" value="APP_END()" vertex="1">
+          <mxGeometry height="26" width="110" x="400" y="161" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_d" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAF2FB;strokeColor=#4A7EBB;fontSize=10;align=center;verticalAlign=middle;" value="app_add_plugin" vertex="1">
+          <mxGeometry height="26" width="110" x="525" y="161" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_e" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAF2FB;strokeColor=#4A7EBB;fontSize=10;align=center;verticalAlign=middle;" value="app_add_system(s)" vertex="1">
+          <mxGeometry height="26" width="120" x="645" y="161" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_f" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAF2FB;strokeColor=#4A7EBB;fontSize=10;align=center;verticalAlign=middle;" value="app_system_set" vertex="1">
+          <mxGeometry height="26" width="110" x="775" y="161" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_note" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#7B8794;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="expansion generates main() itself: SDL/TTF init, log, window+renderer, schedule alloc, plugin invocation, loop, teardown" vertex="1">
+          <mxGeometry height="44" width="215" x="900" y="148" as="geometry" />
+        </mxCell>
+        <mxCell id="L3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B9C2CB;strokeWidth=1;dashed=1;fontSize=11;fontColor=#7B8794;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;" value="L3  Engine Core Subsystems" vertex="1">
+          <mxGeometry height="252" width="1089" x="40" y="223" as="geometry" />
+        </mxCell>
+        <mxCell id="C1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCE9F7;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="1)  Application / Schedule" vertex="1">
+          <mxGeometry height="224" width="212" x="53" y="245" as="geometry" />
+        </mxCell>
+        <mxCell id="CR1" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;fontColor=#52606D;fillColor=none;strokeColor=none;" value="application.c/h" vertex="1">
+          <mxGeometry height="14" width="212" x="53" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="CI1_0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Application singleton (app_get)" vertex="1">
+          <mxGeometry height="24" width="196" x="61" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="CI1_1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="SystemFn** schedules[7]" vertex="1">
+          <mxGeometry height="24" width="196" x="61" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="CI1_2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="SCHEDULE_GLOBAL / FRAME / INTERVAL" vertex="1">
+          <mxGeometry height="24" width="196" x="61" y="341" as="geometry" />
+        </mxCell>
+        <mxCell id="CI1_3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="plugins[] + plugin_all dedupe" vertex="1">
+          <mxGeometry height="24" width="196" x="61" y="369" as="geometry" />
+        </mxCell>
+        <mxCell id="CI1_4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="system_sets (string hash map)" vertex="1">
+          <mxGeometry height="24" width="196" x="61" y="397" as="geometry" />
+        </mxCell>
+        <mxCell id="CI1_5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="main loop + SDL_DelayPrecise" vertex="1">
+          <mxGeometry height="24" width="196" x="61" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="C2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6F4EA;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="2)  ECS Core" vertex="1">
+          <mxGeometry height="224" width="212" x="265" y="245" as="geometry" />
+        </mxCell>
+        <mxCell id="CR2" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;fontColor=#52606D;fillColor=none;strokeColor=none;" value="comp_types / query / command" vertex="1">
+          <mxGeometry height="14" width="212" x="265" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="CI2_0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Entity pool (u32, 0 = invalid)" vertex="1">
+          <mxGeometry height="24" width="196" x="273" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="CI2_1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="CompTypeReg (type-erased)" vertex="1">
+          <mxGeometry height="24" width="196" x="273" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="CI2_2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="sparse set + dense set" vertex="1">
+          <mxGeometry height="24" width="196" x="273" y="341" as="geometry" />
+        </mxCell>
+        <mxCell id="CI2_3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Query: 4 condition kinds" vertex="1">
+          <mxGeometry height="24" width="196" x="273" y="369" as="geometry" />
+        </mxCell>
+        <mxCell id="CI2_4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="EntityCommand ecmd_*" vertex="1">
+          <mxGeometry height="24" width="196" x="273" y="397" as="geometry" />
+        </mxCell>
+        <mxCell id="CI2_5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Filiation parent / child" vertex="1">
+          <mxGeometry height="24" width="196" x="273" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="C3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F4E9F7;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="3)  Events" vertex="1">
+          <mxGeometry height="224" width="212" x="477" y="245" as="geometry" />
+        </mxCell>
+        <mxCell id="CR3" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;fontColor=#52606D;fillColor=none;strokeColor=none;" value="event.c/h" vertex="1">
+          <mxGeometry height="14" width="212" x="477" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="CI3_0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Message: MsgId + double buffer" vertex="1">
+          <mxGeometry height="24" width="196" x="485" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="CI3_1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="message_send / receive" vertex="1">
+          <mxGeometry height="24" width="196" x="485" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="CI3_2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Signal: SigId (zero lookup)" vertex="1">
+          <mxGeometry height="24" width="196" x="485" y="341" as="geometry" />
+        </mxCell>
+        <mxCell id="CI3_3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="G_ObserverReg (on Application)" vertex="1">
+          <mxGeometry height="24" width="196" x="485" y="369" as="geometry" />
+        </mxCell>
+        <mxCell id="CI3_4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="E_ObserverReg (global static)" vertex="1">
+          <mxGeometry height="24" width="196" x="485" y="397" as="geometry" />
+        </mxCell>
+        <mxCell id="CI3_5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="signal_*_trigger" vertex="1">
+          <mxGeometry height="24" width="196" x="485" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="C4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F0F5DA;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="4)  Resources / State / Timer" vertex="1">
+          <mxGeometry height="224" width="212" x="689" y="245" as="geometry" />
+        </mxCell>
+        <mxCell id="CR4" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;fontColor=#52606D;fillColor=none;strokeColor=none;" value="resource / state / timer / path" vertex="1">
+          <mxGeometry height="14" width="212" x="689" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="CI4_0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="DECLARE_RESOURCE + offsetof set" vertex="1">
+          <mxGeometry height="24" width="196" x="697" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="CI4_1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Res_TimeFixed / Res_TimeDelta" vertex="1">
+          <mxGeometry height="24" width="196" x="697" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="CI4_2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Res_InputMouse (LAST_FIELD)" vertex="1">
+          <mxGeometry height="24" width="196" x="697" y="341" as="geometry" />
+        </mxCell>
+        <mxCell id="CI4_3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="DECLARE_STATE_SET + on_enter/exit" vertex="1">
+          <mxGeometry height="24" width="196" x="697" y="369" as="geometry" />
+        </mxCell>
+        <mxCell id="CI4_4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Timer registry + callback" vertex="1">
+          <mxGeometry height="24" width="196" x="697" y="397" as="geometry" />
+        </mxCell>
+        <mxCell id="CI4_5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="ASSET / MAPLE_ASSET paths" vertex="1">
+          <mxGeometry height="24" width="196" x="697" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="C5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FBEAE6;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="5)  Rendering / SDL3 Layer" vertex="1">
+          <mxGeometry height="224" width="212" x="901" y="245" as="geometry" />
+        </mxCell>
+        <mxCell id="CR5" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;fontColor=#52606D;fillColor=none;strokeColor=none;" value="default_plugin + builtin" vertex="1">
+          <mxGeometry height="14" width="212" x="901" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="CI5_0" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Default plugin system wiring" vertex="1">
+          <mxGeometry height="24" width="196" x="909" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="CI5_1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Node layout -&gt; ComputedNode" vertex="1">
+          <mxGeometry height="24" width="196" x="909" y="313" as="geometry" />
+        </mxCell>
+        <mxCell id="CI5_2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Text -&gt; Utf8Tile (codepoint cache)" vertex="1">
+          <mxGeometry height="24" width="196" x="909" y="341" as="geometry" />
+        </mxCell>
+        <mxCell id="CI5_3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Button hit-test + callback" vertex="1">
+          <mxGeometry height="24" width="196" x="909" y="369" as="geometry" />
+        </mxCell>
+        <mxCell id="CI5_4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="DebugDisplay shading rects" vertex="1">
+          <mxGeometry height="24" width="196" x="909" y="397" as="geometry" />
+        </mxCell>
+        <mxCell id="CI5_5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="SDL render / present / pump" vertex="1">
+          <mxGeometry height="24" width="196" x="909" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="L2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF3CD;strokeColor=#D9A400;strokeWidth=1;fontSize=11;fontColor=#8A6400;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;" value="L2  Cross-cutting Mechanisms (thread through every subsystem above)" vertex="1">
+          <mxGeometry height="90" width="1089" x="40" y="499" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_a" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="&lt;b&gt;Interface family&lt;/b&gt;  DECLARE_INTERFACE_* / IMPL_INTERFACE_*_BEGIN-END&lt;br&gt;ToString / Serde / Default / Copy -&gt; generated prefix_op_fn, zero vtable" vertex="1">
+          <mxGeometry height="52" width="260" x="53" y="529" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_b" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="&lt;b&gt;WITH / WITH_COPIED&lt;/b&gt;  GNU statement-expression scope&lt;br&gt;binds _obj_self so method macros read as a one-direction chain" vertex="1">
+          <mxGeometry height="52" width="260" x="325" y="529" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_c" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="&lt;b&gt;HACKER_ADDR / HACKER_COPIED&lt;/b&gt;&lt;br&gt;dependency injection of static state via generated accessors" vertex="1">
+          <mxGeometry height="52" width="260" x="597" y="529" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_d" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8A94A6;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="&lt;b&gt;Log macros&lt;/b&gt;  LOG_* / DLOG / VLOG / TLOG&lt;br&gt;_ONCE / _LIMITED(n) / console-file split / DEBUG elision" vertex="1">
+          <mxGeometry height="52" width="248" x="869" y="529" as="geometry" />
+        </mxCell>
+        <mxCell id="L1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FB;strokeColor=#B9C2CB;strokeWidth=1;dashed=1;fontSize=11;fontColor=#7B8794;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;" value="L1  Third-party &amp; Platform" vertex="1">
+          <mxGeometry height="62" width="1089" x="40" y="612" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_a" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=11;align=center;verticalAlign=middle;" value="SDL3  3.2.20" vertex="1">
+          <mxGeometry height="26" width="120" x="110" y="636" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_b" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=11;align=center;verticalAlign=middle;" value="SDL3_ttf  3.2.2" vertex="1">
+          <mxGeometry height="26" width="120" x="245" y="636" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_c" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=11;align=center;verticalAlign=middle;" value="stb_ds.h" vertex="1">
+          <mxGeometry height="26" width="90" x="380" y="636" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_d" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=11;align=center;verticalAlign=middle;" value="&amp;lt;uchar.h&amp;gt; C23" vertex="1">
+          <mxGeometry height="26" width="110" x="485" y="636" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_e" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=11;align=center;verticalAlign=middle;" value="clang + Ninja + CMake + vcpkg" vertex="1">
+          <mxGeometry height="26" width="200" x="610" y="636" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_note" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#7B8794;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="window / renderer / logical presentation / input events / precise delay / GetBasePath / mutexes" vertex="1">
+          <mxGeometry height="40" width="292" x="825" y="628" as="geometry" />
+        </mxCell>
+        <mxCell id="LEG" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C7CDD4;fontSize=11;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" value="&lt;b&gt;Legend&lt;/b&gt;" vertex="1">
+          <mxGeometry height="112" width="1089" x="40" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_c1" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="rectangle = data structure" vertex="1">
+          <mxGeometry height="16" width="220" x="55" y="726" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_c2" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="rounded = function / system" vertex="1">
+          <mxGeometry height="16" width="220" x="55" y="744" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_c3" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="hexagon = macro (preprocessor)" vertex="1">
+          <mxGeometry height="16" width="220" x="55" y="762" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_c4" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="pale yellow = heap allocated" vertex="1">
+          <mxGeometry height="16" width="220" x="55" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_e1" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="solid arrow = call / dependency" vertex="1">
+          <mxGeometry height="16" width="265" x="290" y="726" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_e2" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="dashed arrow = via global registry" vertex="1">
+          <mxGeometry height="16" width="265" x="290" y="744" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_e3" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="open diamond = ownership (malloc / free)" vertex="1">
+          <mxGeometry height="16" width="265" x="290" y="762" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_e4" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="green dotted = macro expands into" vertex="1">
+          <mxGeometry height="16" width="265" x="290" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_p1" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=#EAF2FB;strokeColor=#8A94A6;" value="L5  Application" vertex="1">
+          <mxGeometry height="16" width="140" x="570" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_p2" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=#FFF3CD;strokeColor=#D9A400;" value="L4  Entry macros" vertex="1">
+          <mxGeometry height="16" width="140" x="570" y="728" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_p3" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=#E6F4EA;strokeColor=#8A94A6;" value="L3  Core subsystems" vertex="1">
+          <mxGeometry height="16" width="140" x="570" y="746" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_p4" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=#FFE0B2;strokeColor=#D9A400;" value="L2  Mechanisms" vertex="1">
+          <mxGeometry height="16" width="140" x="570" y="764" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_p5" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=#F7F9FB;strokeColor=#B9C2CB;" value="L1  Third-party / platform" vertex="1">
+          <mxGeometry height="16" width="140" x="570" y="782" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_note" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=10;fontColor=#334E68;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="Reading order for a reviewer:&#xa;1) L5 -&gt; L4: how little an app has to write.&#xa;2) L3: five subsystems; they talk only through Application, CompTypeReg or a module registry.&#xa;3) L2: what is NOT a subsystem - the interface / macro machinery every subsystem is built from.&#xa;4) L1: nothing above touches a platform API except sdl3_layer." vertex="1">
+          <mxGeometry height="90" width="398" x="715" y="708" as="geometry" />
+        </mxCell>
+        <mxCell id="e_l5_l4" edge="1" parent="1" source="L5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=openThin;endFill=0;strokeColor=#2E9E6B;strokeWidth=2;dashed=1;dashPattern=6 3;fontSize=10;labelBackgroundColor=#FFFFFF;" value="calls">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="585" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_l4_l3" edge="1" parent="1" source="L4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" target="L3" value="assembles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_l3_l2" edge="1" parent="1" source="L3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" target="L2" value="built from">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_l2_l1" edge="1" parent="1" source="L2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" target="L1" value="rests on">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Data Path" id="dp1">
+    <mxGraphModel dx="1213" dy="722" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="dtitle" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontStyle=1;fontColor=#1F2933;fillColor=none;strokeColor=none;" value="&lt;b&gt;MapleLeaf - ECS Data Path&lt;/b&gt;" vertex="1">
+          <mxGeometry height="28" width="700" x="40" y="12" as="geometry" />
+        </mxCell>
+        <mxCell id="dsub" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#7B8794;fillColor=none;strokeColor=none;" value="How a component is identified, stored, queried and mutated. Shape = kind of thing; colour = who owns the memory." vertex="1">
+          <mxGeometry height="16" width="900" x="40" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="pool" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="Entity pool  &lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;(static free stack)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="162" width="210" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pool_1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Entity entity_available_pool[1024]" vertex="1">
+          <mxGeometry height="26" width="190" x="50" y="94" as="geometry" />
+        </mxCell>
+        <mxCell id="pool_2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="usize next_available  (stack top)" vertex="1">
+          <mxGeometry height="26" width="190" x="50" y="124" as="geometry" />
+        </mxCell>
+        <mxCell id="pool_3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Entity = u32,  0 = ENTITY_INVALID" vertex="1">
+          <mxGeometry height="26" width="190" x="50" y="154" as="geometry" />
+        </mxCell>
+        <mxCell id="pool_4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="ENTITY_NUM_MAX = 1024 (hard bound)" vertex="1">
+          <mxGeometry height="26" width="190" x="50" y="184" as="geometry" />
+        </mxCell>
+        <mxCell id="pool_note" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#7B8794;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="next() pops, despawn pushes the id back: ids are reused, and there is no generation field to detect a stale handle." vertex="1">
+          <mxGeometry height="36" width="210" x="40" y="228" as="geometry" />
+        </mxCell>
+        <mxCell id="cnr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="CompNameReg  &lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;(string hash map)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="102" width="300" x="270" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cnr_1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="key : const char*" vertex="1">
+          <mxGeometry height="26" width="276" x="282" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="cnr_2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="value : CompId  (u32, 0 = invalid)" vertex="1">
+          <mxGeometry height="26" width="276" x="282" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="cnr_note" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#7B8794;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="comp_id_fn(name) / reg_comp_fn(name, size, free_fn) - touched only during registration" vertex="1">
+          <mxGeometry height="32" width="300" x="270" y="168" as="geometry" />
+        </mxCell>
+        <mxCell id="ctr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="CompTypeReg  &lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;(hash map: CompId to CompType - type-erased storage)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="186" width="530" x="40" y="274" as="geometry" />
+        </mxCell>
+        <mxCell id="ctr_1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="void*   dense_set    [heap] malloc(ENTITY_NUM_MAX * comp_size)" vertex="1">
+          <mxGeometry height="28" width="506" x="52" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="ctr_2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="u32     dense_len    live component count for this type" vertex="1">
+          <mxGeometry height="28" width="506" x="52" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ctr_3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="i32*    sparse_set   [heap] malloc(ENTITY_NUM_MAX * sizeof i32), -1 = absent" vertex="1">
+          <mxGeometry height="28" width="506" x="52" y="358" as="geometry" />
+        </mxCell>
+        <mxCell id="ctr_4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="usize   comp_size    runtime byte size, used by every memcpy" vertex="1">
+          <mxGeometry height="28" width="506" x="52" y="386" as="geometry" />
+        </mxCell>
+        <mxCell id="ctr_5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="CompFreeFn free_fn   optional destructor (arrfree / hmfree inner fields)" vertex="1">
+          <mxGeometry height="28" width="506" x="52" y="414" as="geometry" />
+        </mxCell>
+        <mxCell id="ctr_note" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#7B8794;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="one lookup - hmgeti(comp_type_reg, comp_id) - is the single source of truth for every component access" vertex="1">
+          <mxGeometry height="18" width="530" x="40" y="472" as="geometry" />
+        </mxCell>
+        <mxCell id="macro_query" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#FFF3CD;strokeColor=#D9A400;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" value="QUERY(...)&#xa;Q_SELECT / Q_OPTION&#xa;Q_WITH / Q_WITHOUT" vertex="1">
+          <mxGeometry height="55" width="210" x="40" y="491" as="geometry" />
+        </mxCell>
+        <mxCell id="macro_impl" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#FFF3CD;strokeColor=#D9A400;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" value="IMPL_COMP(T)&#xa;DECLARE_COMP_BEGIN / END" vertex="1">
+          <mxGeometry height="55" width="300" x="270" y="491" as="geometry" />
+        </mxCell>
+        <mxCell id="qbox" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="QueryIter  &lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;(stack value, lives inside one system)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="190" width="530" x="40" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="q0" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="const WaitCond* conds    conditions, consumed once by QUERY_INIT" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="598" as="geometry" />
+        </mxCell>
+        <mxCell id="q1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="CompId* select            must exist; IS the result payload" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="618" as="geometry" />
+        </mxCell>
+        <mxCell id="q2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="CompId* option            may be NULL in the bundle" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="638" as="geometry" />
+        </mxCell>
+        <mxCell id="q3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="CompId* with              filter in, not returned" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="658" as="geometry" />
+        </mxCell>
+        <mxCell id="q4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="CompId* without           filter out" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="678" as="geometry" />
+        </mxCell>
+        <mxCell id="q5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="CompIdSet all             dedupe set (key-only hash map)" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="698" as="geometry" />
+        </mxCell>
+        <mxCell id="q6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="usize stride = |select| + |option|, 0 = uninitialised; IdOffsetMap offsets; usize i = cursor" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="718" as="geometry" />
+        </mxCell>
+        <mxCell id="q7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="QueryTarget* results      [heap] arrsetcap(1024), rebuilt on every Q_EXEC" vertex="1">
+          <mxGeometry height="18" width="506" x="52" y="738" as="geometry" />
+        </mxCell>
+        <mxCell id="bundle" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#E0A800;strokeWidth=2;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="results: pointer bundle - one bundle per entity:&#xa;[0] A*  [1] B*  [2] C*  |  [3] A*  [4] B*  [5] C*  |  [6] ...&#xa;stride = 3, so Q_NEXT advances by 3 and Q_FETCH indexes with offsets[CompId]" vertex="1">
+          <mxGeometry height="47" width="530" x="40" y="769" as="geometry" />
+        </mxCell>
+        <mxCell id="fil" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="FiliationReg  &lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;(hash map)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="340" x="620" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fil_1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Entity   parent" vertex="1">
+          <mxGeometry height="26" width="316" x="632" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="fil_2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Entity*  children   [heap] stb_ds array" vertex="1">
+          <mxGeometry height="26" width="316" x="632" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="fil_note" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#7B8794;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="built by ecmd_with_child / set_parent; walked iteratively by cascade despawn" vertex="1">
+          <mxGeometry height="30" width="340" x="620" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="ecmd" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontSize=12;fontStyle=1;align=center;verticalAlign=top;spacingTop=4;" value="EntityCommand  &lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;(chainable handle)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="120" width="340" x="620" y="204" as="geometry" />
+        </mxCell>
+        <mxCell id="ecmd_1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="Entity target" vertex="1">
+          <mxGeometry height="26" width="316" x="632" y="236" as="geometry" />
+        </mxCell>
+        <mxCell id="ecmd_2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="struct Command* cmd" vertex="1">
+          <mxGeometry height="26" width="316" x="632" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="ecmd_3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#AEB8C2;fontSize=10;align=left;spacingLeft=6;verticalAlign=middle;" value="bool* success" vertex="1">
+          <mxGeometry height="26" width="316" x="632" y="296" as="geometry" />
+        </mxCell>
+        <mxCell id="ecmd_note" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#7B8794;fillColor=none;strokeColor=none;whiteSpace=wrap;" value="cmd_spawn / cmd_entity / ecmd_insert / ecmd_remove / ecmd_despawn / ecmd_with_child" vertex="1">
+          <mxGeometry height="30" width="350" x="615" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="dleg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C7CDD4;fontSize=11;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;" value="&lt;b&gt;Legend&lt;/b&gt;" vertex="1">
+          <mxGeometry height="214" width="340" x="620" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="dl1" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="white box = engine-owned struct" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="398" as="geometry" />
+        </mxCell>
+        <mxCell id="dl2" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="grey row = struct field" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="dl3" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="pale yellow = heap allocated" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="442" as="geometry" />
+        </mxCell>
+        <mxCell id="dl4" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="hexagon = macro (preprocessor)" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="464" as="geometry" />
+        </mxCell>
+        <mxCell id="dl5" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="solid arrow = lookup / call" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="486" as="geometry" />
+        </mxCell>
+        <mxCell id="dl6" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="open diamond = heap ownership" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="508" as="geometry" />
+        </mxCell>
+        <mxCell id="dl7" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="green dotted = macro generates code" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="dl8" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fillColor=none;strokeColor=none;" value="red box = invariant worth saying out loud" vertex="1">
+          <mxGeometry height="18" width="316" x="632" y="552" as="geometry" />
+        </mxCell>
+        <mxCell id="inv" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FDECEA;strokeColor=#C0392B;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;Structural invariants&lt;/b&gt;&#xa;1. Owner injection: DECLARE_COMP_BEGIN puts &#39;Entity owner&#39; first, so a component finds its entity - and a system can mutate the very storage it iterates.&#xa;2. sparse_set[e] != -1  &lt;=&gt;  entity e owns that component; the two arrays stay one-to-one through dense_len.&#xa;3. dense_len &lt;= ENTITY_NUM_MAX (1024). Removal is swap-with-last: O(1), but it INVALIDATES pointers and reorders the dense array.&#xa;4. Query scans the SHORTEST candidate dense array among select + with, so cost is O(n) in that array, not O(entities x conditions).&#xa;5. The per-call-site offset cache is a function-local static (Q_FETCH): correct for one thread and one live QueryIter per call site.&#xa;&#xa;&lt;b&gt;Deliberate omissions&lt;/b&gt; (each is a trade, not an oversight): no archetype table, no entity generation counter, no change-detection tick, no asset handle." vertex="1">
+          <mxGeometry height="206" width="340" x="620" y="596" as="geometry" />
+        </mxCell>
+        <mxCell id="de1" edge="1" parent="1" source="cnr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#4A7EBB;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" target="ctr" value="comp_id_fn(name)">
+          <mxGeometry relative="1" x="0.2159" y="-10" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="420" y="250" />
+              <mxPoint x="305" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="de2" edge="1" parent="1" source="pool" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.898;exitDx=0;exitDy=0;exitPerimeter=0;" target="ctr" value="Entity e">
+          <mxGeometry relative="1" x="-0.5139" y="-14" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="305" y="206" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="de6" edge="1" parent="1" source="ctr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;" target="qbox" value="CompType per condition">
+          <mxGeometry relative="1" x="0.8182" y="65" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="de7" edge="1" parent="1" source="macro_query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=openThin;endFill=0;strokeColor=#2E9E6B;strokeWidth=2;dashed=1;dashPattern=6 3;fontSize=10;labelBackgroundColor=#FFFFFF;" target="qbox" value="fills conds[]">
+          <mxGeometry relative="1" x="-0.026" y="-10" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="145" y="550" />
+              <mxPoint x="270" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="de8" edge="1" parent="1" source="ecmd" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=10;labelBackgroundColor=#FFFFFF;entryX=0.867;entryY=-0.004;entryDx=0;entryDy=0;entryPerimeter=0;" target="ctr" value="insert / remove">
+          <mxGeometry relative="1" x="-0.2941" y="10" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="500" y="220" />
+            </Array>
+            <mxPoint x="500" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Time Sequence" id="ts1">
+    <mxGraphModel dx="1213" dy="722" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ttitle" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontStyle=1;fontColor=#1F2933;fillColor=none;strokeColor=none;" value="&lt;b&gt;MapleLeaf - Frame Pipeline &amp; Time Sequence&lt;/b&gt;" vertex="1">
+          <mxGeometry height="28" width="700" x="40" y="12" as="geometry" />
+        </mxCell>
+        <mxCell id="tsub" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#7B8794;fillColor=none;strokeColor=none;" value="One frame of MAIN_LOOP(fps): the exact order of systems and the three dispatch semantics." vertex="1">
+          <mxGeometry height="16" width="900" x="40" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;1. Startup   [ONCE]&lt;/b&gt;&lt;br&gt;&lt;br&gt;The plugin list runs first: default_plugin, then the demo plugin. Each plugin only &lt;i&gt;registers&lt;/i&gt; - resources, components, systems into schedule slots. Then SCHEDULE_GLOBAL(Startup) runs once, e.g. demo1_ui_spawn builds the UI tree via cmd_spawn + ecmd_insert." vertex="1">
+          <mxGeometry height="110" width="352" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;2. PreUpdate   [EVERY FRAME]&lt;/b&gt;&lt;br&gt;&lt;br&gt;1. event_pumper: SDL_PollEvent, converts to render coordinates, writes Res_InputMouse via res_swap_update so the previous value survives as last_*.&#xa;2. message_buf_swapper: swaps next_messages / current_messages and clears next." vertex="1">
+          <mxGeometry height="110" width="352" x="588" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;3. FixedUpdate   [CATCH-UP]&lt;/b&gt;&lt;br&gt;&lt;br&gt;while (now - last &gt; nspf) run the whole list, then last += nspf. Logic therefore steps at a fixed rate even when rendering is slow - but a long stall makes it run many times in one frame (spiral of death, currently unbounded)." vertex="1">
+          <mxGeometry height="90" width="352" x="590" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;4. Update   [EVERY FRAME]&lt;/b&gt;&lt;br&gt;&lt;br&gt;User gameplay systems. They read global resources (get_delta_ms, get_fixed_ms, Res_InputMouse) and Query the component registry. Nothing here comes from the default plugin - this is where the demo lives." vertex="1">
+          <mxGeometry height="90" width="352" x="200" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;5. PostUpdate   [EVERY FRAME]&lt;/b&gt;&lt;br&gt;&lt;br&gt;1. node_computer - roots only, resolves Transform vs layout into ComputedNode.&#xa;2. btn_processor - hit test, derive BtnState, fire callback on release.&#xa;3. text_tiles_updater - rebuild glyph tiles when content_changed.&#xa;4. input_resources_syncer - copy current into last_* fields." vertex="1">
+          <mxGeometry height="110" width="352" x="200" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="s6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;6. Render   [EVERY FRAME]&lt;/b&gt;&lt;br&gt;&lt;br&gt;render_start (clear) -&gt; render_ui (debug shading rects, then text tiles) -&gt; present. Draw order IS array order, which is exactly why render_* systems are registered last: PostUpdate has already produced every ComputedNode." vertex="1">
+          <mxGeometry height="110" width="352" x="590" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="s7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;7. Frame tail&lt;/b&gt;&lt;br&gt;&lt;br&gt;elapsed = now - frame_start; if elapsed &lt; nspf then SDL_DelayPrecise(nspf - elapsed). The loop is frame-rate limited, not a spin loop. A 600-frame average is logged in Debug builds." vertex="1">
+          <mxGeometry height="100" width="352" x="200" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="s8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#F7F9FB;strokeColor=#8A94A6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;8. Cleanup   [ONCE]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Runs after the loop, when app-&gt;condition becomes false (SDL_EVENT_QUIT). APP_END then tears everything down: component registry, schedules, message queues, observers, timers, fonts, glyph textures, path cache." vertex="1">
+          <mxGeometry height="100" width="352" x="590" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="phase_bar" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E7F6EF;strokeColor=#2E9E6B;strokeWidth=2;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="Startup  |  PreUpdate  |  FixedUpdate  |  Update  |  PostUpdate  |  Render  |  frame tail  -&gt;  next frame" vertex="1">
+          <mxGeometry height="30" width="1089" x="40" y="596" as="geometry" />
+        </mxCell>
+        <mxCell id="note1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FDECEA;strokeColor=#C0392B;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" value="&lt;b&gt;The three dispatch semantics&lt;/b&gt;&#xa;SCHEDULE_GLOBAL(phase) - a function-local static bool makes the phase run exactly once, ever.&#xa;SCHEDULE_FRAME(phase) - run every system in array order, every iteration.&#xa;SCHEDULE_INTERVAL(phase) - catch up to wall time in fixed steps of Res_TimeFixed.nspf.&#xa;Cleanup is deliberately outside the loop: it is dispatched after condition becomes false.&#xa;&#xa;&lt;b&gt;Time, input and timers&lt;/b&gt;&#xa;Resources are plain static structs, so per-frame data is overwritten in place - except messages, which are double-buffered: a message sent in frame N is readable in frame N+1, and anything unread is dropped at the next swap, so no queue can grow without bound.&#xa;Res_InputMouse is double-written by res_swap_update (new value plus the old one into last_*), so a click is judged as &#39;released now, held before&#39; without an event queue.&#xa;Timer is deliberately synchronous - SDL&#39;s own timer fires on another thread, and game logic must stay on the main thread." vertex="1">
+          <mxGeometry height="158" width="1089" x="40" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="te1" edge="1" parent="1" source="s1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="s2" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="115" />
+              <mxPoint x="410" y="115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="te2" edge="1" parent="1" source="s2" style="rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="s3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="te3" edge="1" parent="1" source="s3" style="rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="s4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="te4" edge="1" parent="1" source="s4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="s5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="te5" edge="1" parent="1" source="s5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="s6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="te6" edge="1" parent="1" source="s6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="s7" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="766" y="440" />
+              <mxPoint x="376" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="te7" edge="1" parent="1" source="s7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="s8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="te8" edge="1" parent="1" source="s8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#8A94A6;strokeWidth=2;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" target="phase_bar" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="766" y="590" />
+              <mxPoint x="766" y="590" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="te9" edge="1" parent="1" source="phase_bar" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;endFill=1;strokeColor=#C0392B;strokeWidth=2;dashed=1;fontSize=10;labelBackgroundColor=#FFFFFF;" target="s1" value="condition == true">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="90" y="380" />
+              <mxPoint x="90" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
