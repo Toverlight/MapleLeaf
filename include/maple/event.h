@@ -81,7 +81,9 @@ typedef struct E_SigIdEntry {
 	E_ObserverEntry* value;
 } E_SigIdEntry, *E_ObserverReg;
 
-// TODO 实体销毁时解除对应绑定
+// 实体销毁时必须解除其观察者绑定（由 maple_entity_despawn 统一调用）
+void maple_remove_e_observers_of_fn(Entity entity);
+#define maple_remove_e_observers_of(entity) maple_remove_e_observers_of_fn(entity)
 
 void maple_unreg_e_observer_all(void);
 

@@ -72,13 +72,39 @@ void signal_add_global_observer_fn(Application* app, SigId sig_id, G_ObserverFn 
 static E_ObserverReg e_observer_reg = nullptr;
 
 void maple_unreg_e_observer_all(void) {
-    for (i32 i = 0; i < hmlen(e_observer_reg); i++) {
-        for (i32 j = 0; j < hmlen(e_observer_reg[i].value); j++) {
+    for (isize i = 0; i < hmlen(e_observer_reg); i++) {
+        for (isize j = 0; j < hmlen(e_observer_reg[i].value); j++) {
             arrfree(e_observer_reg[i].value[j].value);
         }
         hmfree(e_observer_reg[i].value);
     }
     hmfree(e_observer_reg);
+    e_observer_reg = nullptr;
+}
+
+/// 解除某实体在所有信号上的观察者绑定。必须在实体销毁前调用：实体 id 会被
+/// 复用，残留的观察者会被下一个占用该 id 的实体错误地继承。
+    void maple_remove_e_observers_of_fn(Entity entity) {
+    if (!entity || !e_observer_reg) return;
+    isize removed = 0;
+    for (isize i = 0; i < hmlen(e_observer_reg); i++) {
+        E_ObserverEntry* e_observers = e_observer_reg[i].value;
+        isize j = hmgeti(e_observers, entity);
+        if (j < 0) continue;
+        arrfree(e_observers[j].value);
+        hmdel(e_observers, entity);
+        removed++;
+    }
+    if (!removed) return;
+    // 顺带回收已经没有任何实体绑定的信号条目，避免注册表随销毁不断膨胀
+    for (isize i = hmlen(e_observer_reg) - 1; i >= 0; i--) {
+        if (hmlen(e_observer_reg[i].value) == 0) {
+            SigId sig_id = e_observer_reg[i].key;
+            hmfree(e_observer_reg[i].value);
+            hmdel(e_observer_reg, sig_id);
+        }
+    }
+    DLOG_LIMITED(50, u8"Removed %lld entity observer binding(s) of entity '%u'", removed, entity);
 }
 
 void signal_add_entity_observer_fn(Entity entity, SigId sig_id, E_ObserverFn e_fn) {

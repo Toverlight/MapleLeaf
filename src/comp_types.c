@@ -1,4 +1,5 @@
 #include <maple/comp_types.h>
+#include <maple/event.h>
 #include <stdlib.h>
 #include <maple/builtin/sdl3_layer.h>
 
@@ -112,6 +113,9 @@ Entity maple_entity_next(void) {
 }
 
 bool maple_entity_despawn(Entity e) {
+    // 先解除事件绑定再回收 id：实体 id 会被复用，残留的观察者会被下一个
+    // 占用同一 id 的实体错误继承（并造成悬垂函数指针）。
+    maple_remove_e_observers_of_fn(e);
     for (isize i = 0; i < hmlen(comp_type_reg); i++) {
         CompType* type = &comp_type_reg[i].value;
         maple_entity_remove(type, e, nullptr);

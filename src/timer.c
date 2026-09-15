@@ -10,6 +10,14 @@ typedef struct {
 static TimerEntry* timer_reg = nullptr;
 
 Timer* timer_new_fn(const char* name, i32 rest_count, u64 interval_ns, void* data, TimerCallback callback) {
+	// 计时器以名称为键，同名覆盖会让旧计时器的堆内存失去引用（泄漏），且旧指针
+	// 一旦被用户缓存就变成悬垂指针。这里保持「注册幂等」：同名则返回已存在的那个。
+	isize existed = shgeti(timer_reg, name);
+	if (existed >= 0) {
+		LOG_WARN_LIMITED(20, u8"Timer named '%s' already exists, return the existent one instead of making a new one", name);
+		return timer_reg[existed].value;
+	}
+
 	Timer* timer = (Timer*)malloc(sizeof(Timer));
 	timer->running = false;
 	timer->rest_count = rest_count;

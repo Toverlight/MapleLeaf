@@ -73,6 +73,11 @@ static void maple_update_horizontal_box(Node* node) {
         child->computed.rect.half_size.x = node->computed.rect.half_size.x * (f32)child->weight / (f32)w_sum;
         child->computed.rect.center.x = cur_left + child->computed.rect.half_size.x;
         cur_left += child->computed.rect.half_size.x * 2.0f;
+        // 交叉轴（此处的 y）不由权重分配，拉伸填满父节点，主轴上不再交给
+        // none-layout 去继承父中心，否则会覆盖上面刚算出的 center.x
+        child->computed.rect.half_size.y = node->computed.rect.half_size.y;
+        child->computed.rect.center.y = node->computed.rect.center.y;
+        child->computed.center_owned = false;
     }
 }
 
@@ -92,6 +97,11 @@ static void maple_update_vertical_box(Node* node) {
         child->computed.rect.half_size.y = node->computed.rect.half_size.y * (f32)child->weight / (f32)w_sum;
         child->computed.rect.center.y = cur_up + child->computed.rect.half_size.y;
         cur_up += child->computed.rect.half_size.y * 2.0f;
+        // 交叉轴（此处的 x）不由权重分配，拉伸填满父节点，主轴上不再交给
+        // none-layout 去继承父中心，否则会覆盖上面刚算出的 center.y
+        child->computed.rect.half_size.x = node->computed.rect.half_size.x;
+        child->computed.rect.center.x = node->computed.rect.center.x;
+        child->computed.center_owned = false;
     }
 }
 

@@ -85,28 +85,32 @@ MapleLeaf deliberately uses a **two-source** dependency scheme. It looks redunda
 | Source | Provides | Why |
 |---|---|---|
 | `thirdparty/` (vendored, **not** in VCS) | the *headers* we `#include` | pins the exact header version we compile against, and keeps `#include <SDL3/SDL.h>` working without relying on the package manager's include layout |
-| **vcpkg** (system-wide) | the *libraries* + `CONFIG` packages | CMake needs `SDL3Config.cmake` etc. to create the imported targets we link; vcpkg also supplies the runtime DLLs |
+| **vcpkg** | the *libraries* + `CONFIG` packages | CMake needs `SDL3Config.cmake` etc. to create the imported targets we link; vcpkg also supplies the runtime DLLs |
 
-Consequence: **you must set up both**, and they must agree on the version (currently **SDL3 3.2.20 / SDL3_ttf 3.2.2**).
+`vcpkg.json` in the repository root declares **which SDL packages and which optional features** we need, so the dependency set is versioned together with the code instead of living in someone's shell history. Note the features: vcpkg's `sdl3-image` ships with **no image codec enabled by default** (only BMP and GIF work), so `png`/`jpeg` must be requested explicitly — otherwise `IMG_LoadTexture()` fails at runtime with `Unsupported image format`, no matter how many DLLs you copy next to the executable.
 
-> If you find this too heavy, you may drop step 2 and let vcpkg's include directory serve both roles — `target_link_libraries(... SDL3::SDL3)` already forwards its include path (see the note in the root `CMakeLists.txt`).
+Consequence: **you must set up both**, and vendored headers must agree with the vcpkg packages on the version (currently **SDL3 3.2.20 / SDL3_ttf 3.2.2 / SDL3_image 3.2.4**).
+
+> If you find this too heavy, you may drop step B.4 and let vcpkg's include directory serve both roles — `target_link_libraries(... SDL3::SDL3)` already forwards its include path (see the note in the root `CMakeLists.txt`).
 
 ### B. Prerequisites
 
 1. **A C23-capable clang** (≥ 16). MSVC is not enough (no C23), GCC is not enough either (`[[clang::unlikely]]`, `({ ... })` statement expressions, `__FILE_NAME__` are Clang-specific). Windows users: MSYS2 UCRT64 (`.../msys2/ucrt64/bin/clang.exe`) is the known-good setup.
 2. **CMake ≥ 3.26** and **Ninja**.
-3. **vcpkg**, bootstrapped and integrated, with the following packages for the `x64-windows` triplet:
+3. **vcpkg**, bootstrapped and integrated. You normally do **not** need to install anything by hand: `vcpkg.json` is a manifest, so the first CMake configure pulls the declared packages (and their features) into `build/<preset>/vcpkg_installed/` automatically.
+
+   If you prefer classic (non-manifest) mode, install the same set manually — **the `[png]` feature is the part that is easy to forget**:
 
    ```powershell
-   vcpkg install sdl3:x64-windows sdl3-ttf:x64-windows
+   vcpkg install sdl3:x64-windows sdl3-ttf:x64-windows "sdl3-image[png]:x64-windows"
    ```
 
-   (`sdl3-image` is currently *not* used by any source file and can be skipped until a Sprite/Image component lands.)
+   Add `jpeg` (`"sdl3-image[png,jpeg]:x64-windows"`) if you want JPEG support as well.
 4. **Vendored headers** — these folders are gitignored on purpose, so clone
    alone is not buildable. Fetch them once:
 
    - **SDL3 3.2.20** (<https://github.com/libsdl-org/SDL/releases/tag/release-3.2.20>):
-     put `SDL3/*.h` under `thirdparty/sdl/SDL3/`, **and put `SDL.h` into that same `SDL3` folder** (create it if missing). Do the same for any extra SDL series header, e.g. `thirdparty/sdl/SDL3/SDL_ttf.h` from <https://github.com/libsdl-org/SDL_ttf>.
+     put `SDL3/*.h` under `thirdparty/sdl/SDL3/`, **and put `SDL.h` into that same `SDL3` folder** (create it if missing). Do the same for any extra SDL series header, e.g. `SDL_ttf.h` / `SDL_image.h` from <https://github.com/libsdl-org/SDL_ttf> and <https://github.com/libsdl-org/SDL_image>.
    - **stb single headers** (<https://github.com/nothings/stb>): put `stb_ds.h` into `thirdparty/stb/`.
 5. **Assets** — a CJK-capable font is required by the text renderer. The project ships *Source Han Sans SC* at `assets/engine/fonts/SOURCEHANSANSSC-NORMAL-2.OTF` (SIL OFL 1.1, see the README in that folder). If you replace it, keep the license file.
 
@@ -126,10 +130,14 @@ Consequence: **you must set up both**, and they must agree on the version (curre
     "CMAKE_TOOLCHAIN_FILE": "<your vcpkg>/scripts/buildsystems/vcpkg.cmake",
     "CMAKE_AR":     "<your llvm-ar>",
     "CMAKE_RANLIB": "<your llvm-ranlib>",
-    "CMAKE_BUILD_TYPE": "Debug"
+    "CMAKE_BUILD_TYPE": "Debug",
+    "VCPKG_TARGET_TRIPLET": "x64-windows",
+    "VCPKG_MANIFEST_MODE": "ON"                 // read vcpkg.json and install deps on configure
   }
 }
 ```
+
+> **`VCPKG_MANIFEST_MODE: ON`** is what makes step B.3 automatic. The first configure after enabling it rebuilds the SDL packages from source into `<binaryDir>/vcpkg_installed/`, which takes a while — that is a one-time cost. Set it to `"OFF"` (or delete the line) to go back to classic mode using the packages you installed globally.
 
 Then:
 
@@ -146,7 +154,7 @@ cmake --build build/debug --target demo1    # build one demo only
 
 Output goes to `build/debug/demo1.exe` together with `maple_core` static lib, the SDL DLLs, and a copy of `assets/`.
 
-> **DLLs**: only `SDL3.dll` is copied by an explicit `POST_BUILD` command. The rest (`SDL3_ttf.dll`, `freetyped.dll`, `libpng16d.dll`, …) arrive via vcpkg's app-local deployment. If a fresh clone dies with a missing-DLL dialog, that mechanism is what to check — not your code.
+> **DLLs**: `cmake/MapleDemo.cmake` deploys them from the imported targets rather than by hard-coded file name (`target_deploy_runtime_deps`, driven by `$<TARGET_RUNTIME_DLLS:...>` and the `MAPLE_RUNTIME_DEPS` list), because the file names differ per configuration — in Debug you get `libpng16d.dll` / `zlibd1.dll`, yet `SDL3_image.dll` itself keeps its name without a `d`. Hard-coding any of these eventually breaks one configuration. To trim what gets deployed, override the list at configure time, e.g. `-DMAPLE_RUNTIME_DEPS=SDL3::SDL3`.
 
 ### E. Run
 
@@ -183,12 +191,14 @@ Then edit `demos/demo2/src/main.c`, which is the *only* file that decides everyt
 | `SDL3/SDL.h: No such file or directory` | step B.4 not done, or `SDL.h` was not moved *into* the `SDL3` folder | redo the vendoring |
 | `unknown type name 'char8_t'` / `typeof` errors | compiler is not Clang ≥ 16 | switch compiler |
 | Window opens and immediately closes, console shows `Failed to load font` | assets not copied / exe run from the wrong directory | see section E |
+| `Failed to load image '...', error: Unsupported image format` | the installed `sdl3-image` was built **without the PNG codec** (vcpkg enables only BMP/GIF by default) — a valid PNG is rejected even though every DLL is present | reinstall with the feature: `vcpkg install "sdl3-image[png]:x64-windows"`, or set `VCPKG_MANIFEST_MODE: ON` so `vcpkg.json` supplies it |
+| `Failed to load image` for a file that exists, with a *different* message | the path is resolved against the **executable's** directory, not the shell's cwd | see section E |
 | Tofu / garbled glyphs for non-ASCII text | known limitation of the per-character tile renderer | see the Roadmap in the README |
 | Linker error on `maple_hacker_copied_*` | an `IMPL_HACKER_COPIED` is missing for a `DECLARE_HACKER_COPIED` | add the matching `IMPL_` in the owning `.c` |
 
 ## Next goals
 
-- [ ] Sprite
+- [x] Sprite
 - [ ] Camera
 
 ## Progress
