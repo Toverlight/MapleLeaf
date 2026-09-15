@@ -23,6 +23,7 @@ typedef struct CompIdEntry {
 
 typedef void* QueryTarget;
 
+// FIXME、NOTE: During query iterating, *_remove function must not be called because it will lead to invalid space reading!
 typedef struct QueryIter {
 	// 待加入的条件
 	const WaitCond* conds;

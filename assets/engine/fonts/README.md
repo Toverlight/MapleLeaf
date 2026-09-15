@@ -8,4 +8,4 @@ SIL Open Font License Version 1.1
 
 v2.005
 
-[releases](https://github.com/adobe-fonts/source-han-sans/releases)
+[source han sans releases](https://github.com/adobe-fonts/source-han-sans/releases)

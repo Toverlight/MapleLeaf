@@ -80,3 +80,7 @@ void maple_dd_free(void* comp) {
     hmfree(dd->shading_line_colors);
     hmfree(dd->shading_fill_colors);
 }
+
+IMPL_COMP(Sprite)
+
+IMPL_COMP(SpriteFrame)

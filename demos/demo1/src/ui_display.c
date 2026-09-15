@@ -39,6 +39,24 @@ void demo1_ui_spawn(void) {
         ecmd_insert(Button, &button, nullptr);
         ecmd_insert(DebugDisplay, &dd, nullptr);
     );
+
+    ecmd = cmd_spawn(COMMAND(), nullptr);
+
+    Sprite sprite = sprite_new(u8"assets/engine/ui/WinXp/Icons/WinIcons_48.png");
+    sprite.rect.half_size = (Vec2){ 48, 48 };
+
+    SpriteFrame sf = sprite_frame_new(FrameType_Square, (IVec2){48, 48}, (IVec2){15, 7}, (IVec2){20, 20});
+
+    Transform tf = transform_default_fn();
+    tf.px = 120.0f;
+    tf.py = 120.0f;
+
+    WITH(ecmd,
+        ecmd_insert(Sprite, &sprite, nullptr);
+        ecmd_insert(SpriteFrame, &sf, nullptr);
+        ecmd_insert(Transform, &tf, nullptr);
+    );
+
     // CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg);
     // isize i = hmgeti(comp_type_reg, comp_id(Node));
     // if (i >= 0) {

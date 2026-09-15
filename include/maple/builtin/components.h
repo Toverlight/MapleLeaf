@@ -38,16 +38,9 @@ typedef struct ComputedNode {
     bool center_owned;
 } ComputedNode;
 DEFINE_INTERFACE_BEGIN(ComputedNode, Default, cnode)
-    cnode_df.rect = (Shape_Rect) { (Vec2){0.0f, 0.0f}, (Vec2){0.0f, 0.0f} };
+    cnode_df.rect = rect_default_fn();
     cnode_df.center_owned = false;
 DEFINE_INTERFACE_END(ComputedNode, Default, cnode)
-
-typedef struct ColorRgba {
-    u8 r;
-    u8 g;
-    u8 b;
-    u8 a;
-} ColorRgba;
 
 /// prefix 'node'
 ///
@@ -130,7 +123,7 @@ typedef struct ComputedText {
 DEFINE_INTERFACE_BEGIN(ComputedText, Default, ctext)
     ctext_df.textures = nullptr;
     ctext_df.aspects = nullptr;
-    ctext_df.rect = (Shape_Rect) { (Vec2){0.0f, 0.0f}, (Vec2){0.0f, 0.0f} };
+    ctext_df.rect = rect_default_fn();
 DEFINE_INTERFACE_END(ComputedText, Default, ctext)
 
 // prefix 'text'
@@ -193,3 +186,48 @@ static inline ColorRgba dd_get_target_shading_fill_color(DebugDisplay* dd, CompI
     return hmget(dd->shading_fill_colors, comp_id);
 }
 void maple_dd_free(void* comp);
+
+DECLARE_COMP_BEGIN(Sprite)
+    TextureHandle texure;
+    Shape_Rect rect; // .center is the offset from transform coordinates .half_size as its drawn size
+DECLARE_COMP_END(Sprite)
+DEFINE_INTERFACE_BEGIN(Sprite, Default, sprite)
+    sprite_df.texure = nullptr;
+    sprite_df.rect = rect_default_fn();
+DEFINE_INTERFACE_END(Sprite, Default, sprite)
+static inline Sprite sprite_new(const utf8* image_path) {
+    Sprite sprite = sprite_default_fn();
+    sprite.texure = maple_load_image(image_path);
+    return sprite;
+}
+
+typedef enum : u8 {
+    FrameType_Horizontal,
+    FrameType_Vertical,
+    FrameType_Square,
+} FrameType;
+
+DECLARE_COMP_BEGIN(SpriteFrame)
+    FrameType frame_type;
+    IVec2 size; // must be set
+    IVec2 margin; // optional, only set when existent
+    IVec2 index; // from 0..
+    IVec2 total; // must be set and greater than index
+DECLARE_COMP_END(SpriteFrame)
+DEFINE_INTERFACE_BEGIN(SpriteFrame, Default, sprite_frame)
+    sprite_frame_df.frame_type = FrameType_Square;
+    sprite_frame_df.size = (IVec2){ 0, 0 };
+    sprite_frame_df.margin = (IVec2){ 0, 0 };
+    sprite_frame_df.index = (IVec2){ 0, 0 };
+    sprite_frame_df.total = (IVec2){ 0, 0 };
+DEFINE_INTERFACE_END(SpriteFrame, Default, sprite_frame)
+static inline SpriteFrame sprite_frame_new(FrameType frame_type, IVec2 size, IVec2 index, IVec2 total) {
+    SpriteFrame sprite_frame = sprite_frame_default_fn();
+    sprite_frame.frame_type = frame_type;
+    sprite_frame.size = size;
+    sprite_frame.index = index;
+    sprite_frame.total = total;
+    if (sprite_frame.index.x >= sprite_frame.total.x) sprite_frame.index.x = sprite_frame.total.x - 1;
+    if (sprite_frame.index.y >= sprite_frame.total.y) sprite_frame.index.y = sprite_frame.total.y - 1;
+    return sprite_frame;
+}

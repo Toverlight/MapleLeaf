@@ -44,6 +44,8 @@ void maple_app_exit(Application* app) {
     maple_unload_fonts();
     maple_unload_utf8_tiles();
 
+    maple_unload_images();
+
     maple_clear_paths();
 }
 

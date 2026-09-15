@@ -3,12 +3,19 @@
 #include <stb_ds.h>
 #include <stdio.h>
 #include <time.h>
+#include <SDL3/SDL_image.h>
+
+// TODO ref counting machanism
+
+// --- font, utf8 text ---
 
 static FontReg font_reg = nullptr;
 static Utf8TileReg utf8_tile_reg = nullptr;
+static ImageReg image_reg = nullptr;
 
 IMPL_HACKER_COPIED(FontReg, font_reg)
 IMPL_HACKER_COPIED(Utf8TileReg, utf8_tile_reg)
+IMPL_HACKER_COPIED(ImageReg, image_reg)
 
 FontHandle maple_load_font(const utf8* utf8_font_path, u32 ptsize) {
     DLOG_LIMITED(20, u8"Loading font '%s' ...", (const char*)utf8_font_path);
@@ -139,6 +146,33 @@ void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data) {
         }
     }
     DLOG_ONCE(u8"Function exiting");
+}
+
+// --- image ---
+
+TextureHandle maple_load_image(const utf8* utf8_image_path) {
+    const char* image_path = (const char*)utf8_image_path;
+    DLOG_LIMITED(10, u8"Loading image '%s'...", image_path);
+    isize i = shgeti(image_reg, image_path);
+    if (i >= 0) {
+        DLOG_LIMITED(10, u8"Found cached image '%s'", image_path);
+        return image_reg[i].value;
+    }
+    DLOG_LIMITED(10, u8"Not found image '%s' in cache, initially loading it...", image_path);
+    TextureHandle handle = IMG_LoadTexture(app_get()->renderer, image_path);
+    if (!handle) {
+        LOG_ERROR_LIMITED(10, u8"Failed to load image '%s', error: %s", image_path, SDL_GetError());
+        return nullptr;
+    }
+    DLOG_LIMITED(10, u8"Successfully loaded image '%s'", image_path);
+    return handle;
+}
+
+void maple_unload_images(void) {
+    for (isize i = 0; i < shlen(image_reg); i++) {
+        SDL_DestroyTexture(image_reg[i].value);
+    }
+    shfree(image_reg);
 }
 
 // log enclosure

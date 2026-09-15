@@ -26,6 +26,10 @@ TODO: Under actively development. Latest effect updated will be put here!
 
 ![just a preview](screenshots/Snipaste_2026-09-09_23-54-59.png)
 
+## My past game engine explorations
+
+See [here](https://github.com/Toverlight/game-engine-explorations)
+
 ## About the assets
 
 For convenience, I decide to keep full necessary assets in the folder `assets`, whether made by myself or others, so that a fresh clone runs out of the box without git-lfs. And, I put the READMEs into the sub-folders to demonstrate the related important things.
@@ -67,6 +71,10 @@ Mostly I use English, but sometimes also use Chinese. Just for convenience. But 
 **About the "proportion" of MYSELF doing:**
 
 I am responsible for **All the DESIGN, CODING, and DOCUMENT EDITING work of the engine**; AI Agent handles bug fixes found during testing, hidden danger audits, complex illustrations, doc revising and polishing, and proposed improvements. *In my opinion, self-dominated project should always be controlled by myself so that the orientation embodies my ideas. But the bug fixing makes me in state of moil and the expectation after fixing is a relatively definite result, so I use the efficient Agent to help me make it.*
+
+**About the origin of this idea:**
+
+I had developed some game demos using the popular Rust language ECS game engine [*Bevy*](https://github.com/bevyengine/bevy), of version 0.18. From this engine, I was amazed at its usability and scalability. Also, I had learned a lot about the advanced design ideas, like Commands, Query, Messaging, Scheduling, friendly procedural Macros, and etc. However, the official version had yet to arrive and its api was unstable yet, plus I want a more lightweight one of C version. So I came up with the idea of this project. Of course, there're huge differences between them, for one hand it's the C language limitations and features, for another I'd like to solve problems by myself and express my concepts so that I'll gain a tremendous sence of achivement.
 
 ## Build
 
@@ -177,6 +185,11 @@ Then edit `demos/demo2/src/main.c`, which is the *only* file that decides everyt
 | Window opens and immediately closes, console shows `Failed to load font` | assets not copied / exe run from the wrong directory | see section E |
 | Tofu / garbled glyphs for non-ASCII text | known limitation of the per-character tile renderer | see the Roadmap in the README |
 | Linker error on `maple_hacker_copied_*` | an `IMPL_HACKER_COPIED` is missing for a `DECLARE_HACKER_COPIED` | add the matching `IMPL_` in the owning `.c` |
+
+## Next goals
+
+- [ ] Sprite
+- [ ] Camera
 
 ## Progress
 

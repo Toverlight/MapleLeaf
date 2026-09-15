@@ -26,7 +26,19 @@ typedef char32_t utf32;
 // 实体，即ID
 typedef u32 Entity;
 
+typedef struct ColorRgba {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} ColorRgba;
+
 typedef struct Vec2 {
     f32 x;
     f32 y;
 } Vec2;
+
+typedef struct IVec2 {
+    i32 x;
+    i32 y;
+} IVec2;

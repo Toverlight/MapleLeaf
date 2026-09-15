@@ -12,6 +12,7 @@ typedef struct EntityCommand {
 	struct Command* cmd;
 } EntityCommand;
 
+// TODO command queue, delayed execution
 extern Command command;
 
 #define COMMAND() (&command)

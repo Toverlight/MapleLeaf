@@ -320,6 +320,58 @@ static void render_debug_rect(RendererHandle renderer, DebugDisplay* dd, CompId 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 }
 
+void maple_df_render_sprites(void) {
+    QueryIter query = QUERY(
+        Q_SELECT(Sprite),
+        Q_OPTION(SpriteFrame),
+        Q_SELECT(Transform) // FIXME replace it with GlobalTransform (to be added)
+    );
+    QUERY_INIT(&query);
+    Q_EXEC(&query);
+    QueryTarget target;
+    while (Q_NEXT(&query, &target)) {
+        const Sprite* sprite = (Sprite*)Q_FETCH(&query, target, Sprite);
+        const SpriteFrame* sf = (SpriteFrame*)Q_FETCH(&query, target, SpriteFrame);
+        const Transform* transform = (Transform*)Q_FETCH(&query, target, Transform);
+
+        if (!sprite->texure) {
+            LOG_WARN_LIMITED(5, u8"Sprite of entity '%u' has no texture (load failed?), skipped", sprite->owner);
+            continue;
+        }
+
+        RendererHandle renderer = app_get()->renderer;
+
+        SDL_SetRenderTarget(renderer, nullptr);
+        SDL_FRect dst;
+        dst.x = transform->px + sprite->rect.center.x - sprite->rect.half_size.x;
+        dst.y = transform->py + sprite->rect.center.y - sprite->rect.half_size.y;
+        dst.w = 2 * sprite->rect.half_size.x;
+        dst.h = 2 * sprite->rect.half_size.y;
+        // TODO tint
+        if (sf) {
+            if (sf->index.x < 0 || sf->index.y < 0 || sf->index.x >= sf->total.x || sf->index.y >= sf->total.y) {
+                LOG_WARN_LIMITED(10, u8"SpriteFrame of entity '%u' has invalid index or total", sf->owner);
+                continue;
+            }
+            if (sf->size.x <= 0 || sf->size.y <= 0) {
+                LOG_WARN_LIMITED(10, u8"SpriteFrame of entity '%u' has invalid size", sf->owner);
+                continue;
+            }
+            // TODO type switch
+            // FIXME total size and margin check
+            SDL_FRect src;
+            src.x = (sf->size.x + sf->margin.x) * sf->index.x + sf->margin.x;
+            src.y = (sf->size.y + sf->margin.y) * sf->index.y + sf->margin.y;
+            src.w = sf->size.x;
+            src.h = sf->size.y;
+            SDL_RenderTexture(renderer, sprite->texure, &src, &dst);
+        } else {
+            SDL_RenderTexture(renderer, sprite->texure, nullptr, &dst);
+        }
+    }
+    QUERY_FREE(&query);
+}
+
 void maple_df_render_ui(void) {
     QueryIter query = QUERY(
         Q_SELECT(Node),
@@ -385,6 +437,8 @@ void default_plugin(struct Application* app) {
     reg_comp(Button, nullptr);
     reg_comp(Text, maple_text_free);
     reg_comp(DebugDisplay, maple_dd_free);
+    reg_comp(Sprite, nullptr);
+    reg_comp(SpriteFrame, nullptr);
 
 	arrins(app->schedules[PreUpdate], 0, maple_df_event_pumper); // 注册事件泵系统
 	arrins(app->schedules[PreUpdate], 1, maple_df_message_buf_swapper); // 注册消息缓冲区交换系统
@@ -396,6 +450,7 @@ void default_plugin(struct Application* app) {
 	arrput(app->schedules[PostUpdate], maple_df_input_resources_syncer); // 注册资源滞后域同步系统
 
 	arrput(app->schedules[Render], maple_df_render_start); // 注册渲染开始
+	arrput(app->schedules[Render], maple_df_render_sprites); // 注册精灵渲染系统
 	// TODO other rendering systems (must be) before ui
 	arrput(app->schedules[Render], maple_df_render_ui); // 注册ui渲染系统
 	// TODO register the rendering system

@@ -10,6 +10,8 @@ typedef SDL_Texture* TextureHandle;
 typedef SDL_Window* WindowHandle;
 typedef SDL_Renderer* RendererHandle;
 
+// --- font, utf8 text ---
+
 typedef struct FontEntry {
     const char* key; // key=u8"<font_path>|<size>"
     FontHandle value;
@@ -29,7 +31,6 @@ typedef struct Utf8TileEntry {
 
 DECLARE_HACKER_COPIED(Utf8TileReg, utf8_tile_reg)
 
-
 typedef struct Utf8TileItem {
     TextureHandle* textures;
     f32* aspects;
@@ -48,6 +49,19 @@ void maple_unload_utf8_tiles(void);
 typedef void(*Utf8CharFn)(const utf32 cp, void* data);
 
 void utf8_iter_string(const utf8 utf8_string[], Utf8CharFn func, void* data);
+
+// --- image ---
+
+typedef struct ImageEntry {
+    const char* key;
+    TextureHandle value;
+} ImageEntry, *ImageReg;
+
+DECLARE_HACKER_COPIED(ImageReg, image_reg)
+
+TextureHandle maple_load_image(const utf8* utf8_image_path);
+
+void maple_unload_images(void);
 
 // log enclosure
 
