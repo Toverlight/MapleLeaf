@@ -106,6 +106,63 @@ void demo_entity_spawn(void) {
 }
 ```
 
+### Query
+
+**Normal Query:**
+
+```c
+void demo_normal_query_system(void) {
+    QueryIter query = QUERY(
+        Q_SELECT(Transform),
+        Q_OPTION(Velocity),
+        Q_WITH(Label)
+        // ...
+    );
+    QUERY_INIT(&query);
+    Q_EXEC(&query);
+    QueryTarget target;
+    while (Q_NEXT(&query, &target)) {
+        Transform* transform = (Transform*)Q_FETCH(&query, target, Transform);
+        const Velocity* velocity = (Velocity*)Q_FETCH(&query, target, Velocity); // Optionally add const to limit it read-only
+
+        // Test velocity non-null or not. Necessary when check option conditions before use them. For pointer security
+        if (velocity) {
+            // do something... for example, update the 'transform' by 'velocity'...
+        }
+    }
+    QUERY_FREE(&query); // FREE operation must be paired with INIT!
+}
+```
+
+**Single (Entity-Specific) Query:**
+
+```c
+void demo_single_query_system(void) {
+    QueryIter query = QUERY(
+        Q_SELECT(Transform),
+        Q_OPTION(Velocity),
+        Q_WITH(Label)
+        // ...
+    );
+    Entity e = ...; // Suppose you have already get a specific entity 'e'
+    QUERY_INIT(&query);
+    // !! EXEC is not for here, only for Normal Query.
+    // Just get components you want to fetch from the specific entity.
+    Q_GET_BEGIN(&query, e, target) // The last arg 'target' here is a new name of inner var to declare.
+        if (target) { // This check is necessary! Most of the time you want access target.
+            Transform* transform = (Transform*)Q_FETCH(&query, target, Transform);
+            const Velocity* velocity = (Velocity*)Q_FETCH(&query, target, Velocity); // Optionally add const to limit it read-only
+
+            if (velocity) {
+                // do something... for example, update the 'transform' by 'velocity'...
+            }
+        }
+    Q_GET_END(target)
+    // In fact, GET-block can be called multi-times on different entities consecutively...
+    QUERY_FREE(&query); // FREE operation must be paired with INIT!
+}
+```
+
 ### TODO: more api use examples...
 
 *(Organizing...)*
