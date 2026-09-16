@@ -45,16 +45,21 @@ void demo1_ui_spawn(void) {
     Sprite sprite = sprite_new(u8"assets/engine/ui/WinXp/Icons/WinIcons_48.png");
     sprite.rect.half_size = (Vec2){ 48, 48 };
 
-    SpriteFrame sf = sprite_frame_new(FrameType_Square, (IVec2){48, 48}, (IVec2){15, 7}, (IVec2){20, 20});
+    SpriteFrame sf = sprite_frame_new(FrameType_Square, (IVec2){48, 48}, (IVec2){11, 14}, (IVec2){20, 20});
 
     Transform tf = transform_default_fn();
-    tf.px = 120.0f;
-    tf.py = 120.0f;
+    tf.px = app_get()->w_real / 2.0f;
+    tf.py = 220.0f;
+
+    DebugDisplay dd2 = dd_default_fn();
+    dd_set_target_shading_line_color(&dd2, comp_id(Sprite), (ColorRgba){88, 43, 177, 255});
+    dd_set_target_shading_fill_color(&dd2, comp_id(Sprite), (ColorRgba){173, 221, 241, 127});
 
     WITH(ecmd,
         ecmd_insert(Sprite, &sprite, nullptr);
         ecmd_insert(SpriteFrame, &sf, nullptr);
         ecmd_insert(Transform, &tf, nullptr);
+        ecmd_insert(DebugDisplay, &dd2, nullptr);
     );
 
     // CompTypeReg comp_type_reg = HACKER_COPIED(comp_type_reg);

@@ -334,7 +334,8 @@ void maple_df_render_sprites(void) {
     QueryIter query = QUERY(
         Q_SELECT(Sprite),
         Q_OPTION(SpriteFrame),
-        Q_SELECT(Transform) // FIXME replace it with GlobalTransform (to be added)
+        Q_SELECT(Transform), // FIXME replace it with or contain GlobalTransform (computed; to be added)
+        Q_OPTION(DebugDisplay)
     );
     QUERY_INIT(&query);
     Q_EXEC(&query);
@@ -343,6 +344,7 @@ void maple_df_render_sprites(void) {
         const Sprite* sprite = (Sprite*)Q_FETCH(&query, target, Sprite);
         const SpriteFrame* sf = (SpriteFrame*)Q_FETCH(&query, target, SpriteFrame);
         const Transform* transform = (Transform*)Q_FETCH(&query, target, Transform);
+        DebugDisplay* dd = (DebugDisplay*)Q_FETCH(&query, target, DebugDisplay);
 
         if (!sprite->texure) {
             LOG_WARN_LIMITED(5, u8"Sprite of entity '%u' has no texture (load failed?), skipped", sprite->owner);
@@ -377,6 +379,13 @@ void maple_df_render_sprites(void) {
             SDL_RenderTexture(renderer, sprite->texure, &src, &dst);
         } else {
             SDL_RenderTexture(renderer, sprite->texure, nullptr, &dst);
+        }
+
+        if (dd) {
+            Shape_Rect rect;
+            rect.center = (Vec2){ transform->px, transform->py };
+            rect.half_size = sprite->rect.half_size;
+            render_debug_rect(renderer, dd, comp_id(Sprite), rect);
         }
     }
     QUERY_FREE(&query);

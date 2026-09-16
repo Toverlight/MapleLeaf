@@ -24,19 +24,99 @@ I use the charts to clearly show my engine architecture:
 
 TODO: Under actively development. Latest effect updated will be put here!
 
-![just a preview](screenshots/Snipaste_2026-09-09_23-54-59.png)
+![just a preview](screenshots/Snipaste_2026-09-16_14-18-05.png)
 
-## My past game engine explorations
+## My Past Game Engine Explorations
 
 My past explorations in games and game engines were full of hardships and obstacles. Many game demos and engines were redone halfway through. After a couple of years, I came up with organizing the work I had done in the past. And now there's the repository for collection, you can *see* ➡️ [**Toverlight's Engines & Games Exploration Collection**](https://github.com/Toverlight/game-engine-explorations)
 
-## About the assets
+## Use
+
+I've made a great effort to reach **api-friendliness**, here's the brief use manual:
+
+***NOTE:*** *All the code in maple (MapleLeaf's lowercase namespace or prefix) you mean to use must be included via the facade maple.h. And the codes like headers, any redundant explanations, are omitted.*
+
+*TODO: more detailed descriptions...*
+
+### Application Entry
+
+```c
+// demo name, demo version, demo identifier, real resolution, logic resolution
+APP_START("My Awesome Demo", "0.1", "com.example.demo", W_720P, H_720P, W_720P, H_720P)
+    app_add_plugin(default_plugin); // default_plugin must be added first
+    // you'd better encapsulate things like systems and etc of your own demo into a plugin, so that the entry looks clean
+    app_add_plugin(demo_plugin);
+    MAIN_LOOP(165); // fps of your demo
+APP_END()
+```
+
+### Plugin
+
+*Plugin is not necessary, but as the comment mentioned above, it's a recommended practice.*
+
+```c
+void demo_plugin(Application* app) {
+    WITH_COPIED(app,
+        app_add_system(Startup, demo_player_spawn);
+        app_add_system(Startup, demo_enemies_spawn);
+        app_add_system(FixedUpdate, demo_move);
+        app_add_system(FixedUpdate, demo_collision);
+        app_add_system(Update, demo_player_control);
+        // ...
+    );
+}
+```
+
+### Entity Spawn
+
+```c
+void demo_entity_spawn(void) {
+    bool suc_entity = false;
+    EntityCommand ecmd = cmd_spawn(COMMAND(), &suc_entity);
+    if (suc_entity) DLOG_ONCE(u8"Spawned entity '%d'", ecmd.target);
+
+    Node node = node_default_fn();
+    node.preferred_half_width = 200;
+    node.preferred_half_height = 50;
+    node.font_height = 48;
+
+    Text text = text_new(u8"Hello Maple引擎!");
+
+    Transform transform = transform_default_fn();
+    transform.px = 640.0f;
+    transform.py = 360.0f;
+
+    Button button = btn_default_fn();
+    button.callback = demo1_btn_callback;
+    button.data = &some_data;
+
+    DebugDisplay dd = dd_default_fn();
+    dd_set_target_shading_line_color(&dd, comp_id(Text), (ColorRgba){220, 220, 220, 255});
+    dd_set_target_shading_line_color(&dd, comp_id(Node), (ColorRgba){174, 174, 174, 255});
+    dd_set_target_shading_fill_color(&dd, comp_id(Text), (ColorRgba){228, 125, 129, 127});
+    dd_set_target_shading_fill_color(&dd, comp_id(Node), (ColorRgba){238, 126, 200, 127});
+
+    WITH(ecmd,
+        ecmd_insert(Node, &node, nullptr);
+        ecmd_insert(Text, &text, nullptr);
+        ecmd_insert(Transform, &transform, nullptr);
+        ecmd_insert(Button, &button, nullptr);
+        ecmd_insert(DebugDisplay, &dd, nullptr);
+    );
+}
+```
+
+### TODO: more api use examples...
+
+*(Organizing...)*
+
+## About the Assets
 
 For convenience, I decide to keep full necessary assets in the folder `assets`, whether made by myself or others, so that a fresh clone runs out of the box without git-lfs. And, I put the READMEs into the sub-folders to demonstrate the related important things.
 
 Check the [catalogue](assets/README.md)
 
-## Third-party notes
+## Third-party Notes
 
 Third party dependencies share the common `thirdparty` folder.
 
@@ -62,7 +142,7 @@ Now the project uses:
 
 - stb_ds.h
 
-## Detail notes
+## Detail Notes
 
 **About "bilingual" comments in code:**
 
@@ -196,7 +276,7 @@ Then edit `demos/demo2/src/main.c`, which is the *only* file that decides everyt
 | Tofu / garbled glyphs for non-ASCII text | known limitation of the per-character tile renderer | see the Roadmap in the README |
 | Linker error on `maple_hacker_copied_*` | an `IMPL_HACKER_COPIED` is missing for a `DECLARE_HACKER_COPIED` | add the matching `IMPL_` in the owning `.c` |
 
-## Next goals
+## Next Goals
 
 - [x] Sprite
 - [ ] Camera
