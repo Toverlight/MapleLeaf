@@ -28,7 +28,7 @@ TODO: Under actively development. Latest effect updated will be put here!
 
 ## My past game engine explorations
 
-See [here](https://github.com/Toverlight/game-engine-explorations)
+My past explorations in games and game engines were full of hardships and obstacles. Many game demos and engines were redone halfway through. After a couple of years, I came up with organizing the work I had done in the past. And now there's the repository for collection, you can *see* ➡️ [**Toverlight's Engines & Games Exploration Collection**](https://github.com/Toverlight/game-engine-explorations)
 
 ## About the assets
 
