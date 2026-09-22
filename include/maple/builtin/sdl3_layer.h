@@ -76,6 +76,8 @@ typedef enum LogPriority {
     LogPriority_Critical,
 } LogPriority;
 
+void log_set_roll_num(u32 num);
+void log_set_roll_size(u32 size);
 void log_set_console_priority(LogPriority priority);
 void log_set_file_priority(LogPriority priority);
 void log_init(const utf8* utf8_file_path);

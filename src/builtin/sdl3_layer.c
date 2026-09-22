@@ -179,17 +179,45 @@ void maple_unload_images(void) {
 // TODO log files rolling
 static bool log_initialized = false;
 
-// TODO 优化：滚动日志（指定数量和大小）
+static utf8** log_file_paths = nullptr;
+static const i32 LOG_FILE_PATH_MAX_LENGTH = 256;
+
+#if defined(_WIN32) || defined(_WIN64)
+    #include <io.h>
+    #define FSTAT_FUNC _fstat64
+    #define STAT_STRUCT struct _stat64
+    #define FILENO _fileno
+#else
+    #include <unistd.h>
+    #define FSTAT_FUNC fstat
+    #define STAT_STRUCT struct stat
+    #define FILENO fileno
+#endif
+
+// TODO 作为一个通用函数
+static i64 get_opened_file_size(FILE *fp) {
+    STAT_STRUCT st;
+    // FILENO(fp) 把 C 语言的 FILE* 转换成系统的文件描述符/句柄 (int)
+    if (FSTAT_FUNC(FILENO(fp), &st) == 0) {
+        return st.st_size; // 极速获取
+    }
+    return -1;
+}
+
 typedef struct {
-    FILE* file;
+    FILE** files;
     SDL_Mutex* mutex;  // SDL3 互斥锁指针
+    u32 roll_num; // Number of recent log files kept, except the current one
+    u32 roll_size; // In bytes. Must not be less than 100 * 1024
     LogPriority console_priority;
     LogPriority file_priority;
 } LogContext;
 
 static LogContext log_ctx = {
-    .file = nullptr,
+    .files = nullptr,
     .mutex = nullptr,
+    .roll_num = 3,
+    .roll_size = 5 * 1024 * 1024,
     .console_priority =
 #ifdef DEBUG
     LogPriority_Trace,
@@ -204,11 +232,39 @@ static LogContext log_ctx = {
 #endif
 };
 
+static bool roll_log_files(LogContext* ctx) {
+    isize n = arrlen(log_file_paths);
+    if (n < 2 || !ctx->files || !log_file_paths) return true;
+
+    // 1. Windows 下重命名前必须先关闭文件
+    for (isize i = 0; i < arrlen(ctx->files); i++) {
+        if (ctx->files[i]) { fclose(ctx->files[i]); ctx->files[i] = nullptr; }
+    }
+
+    // 2. 依次滚动：base -> _1、_1 -> _2 …，最老的 _n 被丢弃
+    //    rename 不会覆盖已存在文件，先 remove 目标；源不存在说明是首次滚动，忽略即可
+    for (isize i = n - 1; i > 0; i--) {
+        remove((const char*)log_file_paths[i]);
+        if (rename((const char*)log_file_paths[i - 1], (const char*)log_file_paths[i]) != 0) {
+            perror("rename during log rotation");
+        }
+    }
+
+    // 3. 重新打开：当前文件全新写入，其余追加
+    for (isize i = 0; i < n; i++) {
+        ctx->files[i] = fopen((const char*)log_file_paths[i], i == 0 ? "w" : "a");
+        if (!ctx->files[i])
+            fprintf(stderr, "Failed to reopen log file %s: %s\n",
+                    (const char*)log_file_paths[i], strerror(errno));
+    }
+    return ctx->files[0] != nullptr;
+}
+
 // TODO 引入多线程后加上thread信息
 static void maple_log_callback(void* userdata, int category, SDL_LogPriority priority, const char* message) {
     LogContext* ctx = (LogContext*)userdata;
     if (!ctx) return;
-    if (!(priority >= (SDL_LogPriority)ctx->console_priority) && !(priority >= (SDL_LogPriority)ctx->file_priority && ctx->file)) {
+    if (!(priority >= (SDL_LogPriority)ctx->console_priority) && !(priority >= (SDL_LogPriority)ctx->file_priority && ctx->files[0])) {
         return;
     }
 
@@ -237,14 +293,27 @@ static void maple_log_callback(void* userdata, int category, SDL_LogPriority pri
 #endif
     }
 
-    if (priority >= (SDL_LogPriority)ctx->file_priority && ctx->file) {
-        fprintf(ctx->file, "[%s] [%s] [Cat:%d] %s\n", time_str, priority_str, category, message);
+    if (priority >= (SDL_LogPriority)ctx->file_priority && ctx->files && ctx->files[0]) {
+        i64 file_size = get_opened_file_size(ctx->files[0]);
+        if (file_size >= 0)
+            if (file_size >= (i64)ctx->roll_size) roll_log_files(ctx);
+
+        fprintf(ctx->files[0], "[%s] [%s] [Cat:%d] %s\n", time_str, priority_str, category, message);
 #ifdef DEBUG
-        fflush(ctx->file);
+        fflush(ctx->files[0]);
 #endif
     }
 
     SDL_UnlockMutex(ctx->mutex);
+}
+
+void log_set_roll_num(u32 num) {
+    log_ctx.roll_num = num;
+}
+
+void log_set_roll_size(u32 size) {
+    if (size < 100 * 1024) size = 100 * 1024;
+    log_ctx.roll_size = size;
 }
 
 void log_set_console_priority(LogPriority priority) {
@@ -260,30 +329,50 @@ void log_init(const utf8* utf8_log_file_path) {
         fprintf(stdout, "Log module hasn't been initialized");
         return;
     }
+    // TODO Like this below, replace all the malloc and free functions in the codebase to SDL_* version
+    for (u32 i = 0; i <= log_ctx.roll_num; i++) {
+        utf8* buf = (utf8*)SDL_malloc(LOG_FILE_PATH_MAX_LENGTH);
+        if (!buf) { fprintf(stderr, "OOM building log paths\n"); log_quit(); return; }
+        i32 written = (i > 0)
+            ? snprintf((char*)buf, LOG_FILE_PATH_MAX_LENGTH, "%s_%u", (const char*)utf8_log_file_path, i)
+            : snprintf((char*)buf, LOG_FILE_PATH_MAX_LENGTH, "%s", (const char*)utf8_log_file_path);
+
+        if (written < 0 || (usize)written >= LOG_FILE_PATH_MAX_LENGTH) {
+            SDL_free(buf);
+            fprintf(stderr, "Failed to write log file paths, at index %u, expected to write %d bytes, out of range %d",
+                i, written, LOG_FILE_PATH_MAX_LENGTH);
+            log_quit();
+            return;
+        }
+        arrput(log_file_paths, buf);
+    }
+
     log_ctx.mutex = SDL_CreateMutex();
     if (!log_ctx.mutex) {
-        LOG_ERROR(u8"Failed to create SDL_Mutex: %s", SDL_GetError());
+        fprintf(stderr, "Failed to create SDL_Mutex: %s", SDL_GetError());
+        log_quit();
         return;
     }
 
-    if (utf8_log_file_path) {
-        log_ctx.file = fopen((const char*)utf8_log_file_path, "a");
-        if (!log_ctx.file) {
-            SDL_DestroyMutex(log_ctx.mutex);
-            log_ctx.mutex = nullptr;
-            LOG_ERROR(u8"Cannot open log file: %s", (const char*)utf8_log_file_path);
+
+    for (i32 i = 0; i < arrlen(log_file_paths); i++) {
+        FILE* file = fopen((const char*)log_file_paths[i], "a");
+        if (!file) {
+            fprintf(stderr, "Cannot open log file: %s", (const char*)log_file_paths[i]);
+            log_quit();
             return;
         }
+        arrput(log_ctx.files, file);
     }
-    DLOG(u8"Log file opened successfully, view here if needed: %s", (const char*)utf8_log_file_path);
+
     SDL_SetLogOutputFunction(maple_log_callback, &log_ctx);
     SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_TRACE);
     log_initialized = true;
+    DLOG_LIMITED(10, u8"Log module initialized: %d files, %u bytes each", log_ctx.roll_num + 1, log_ctx.roll_size);
 }
 
 void log_quit(void) {
     fflush(stdout);
-    fflush(log_ctx.file);
     SDL_SetLogOutputFunction(nullptr, nullptr);
 
     // 安全释放锁和文件句柄
@@ -291,10 +380,19 @@ void log_quit(void) {
         SDL_DestroyMutex(log_ctx.mutex);
         log_ctx.mutex = nullptr;
     }
-    if (log_ctx.file) {
-        fclose(log_ctx.file);
-        log_ctx.file = nullptr;
+    for (i32 i = 0; i < arrlen(log_ctx.files); i++) {
+        if (log_ctx.files[i]) {
+            fflush(log_ctx.files[i]);
+            fclose(log_ctx.files[i]);
+            log_ctx.files[i] = nullptr;
+        }
     }
+    arrfree(log_ctx.files);
+
+    for (u32 i = 0; i < arrlen(log_file_paths); i++) {
+        SDL_free(log_file_paths[i]);
+    }
+    arrfree(log_file_paths);
 
     log_initialized = false;
 }

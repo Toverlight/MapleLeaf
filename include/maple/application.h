@@ -69,7 +69,7 @@ int main(void) { \
 	if (!TTF_Init()) { \
 	    fprintf(stdout, "ERROR: TTF Init failed: %s", SDL_GetError()); \
 	} \
-	log_init(ASSET(DEMO_NAME u8"_log.txt")); \
+	log_init(ASSET(DEMO_NAME u8"_log")); \
 	maple_entity_pool_init(); \
 	WindowHandle window; \
 	RendererHandle renderer; \

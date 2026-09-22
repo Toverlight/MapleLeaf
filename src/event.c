@@ -84,7 +84,7 @@ void maple_unreg_e_observer_all(void) {
 
 /// 解除某实体在所有信号上的观察者绑定。必须在实体销毁前调用：实体 id 会被
 /// 复用，残留的观察者会被下一个占用该 id 的实体错误地继承。
-    void maple_remove_e_observers_of_fn(Entity entity) {
+void maple_remove_e_observers_of_fn(Entity entity) {
     if (!entity || !e_observer_reg) return;
     isize removed = 0;
     for (isize i = 0; i < hmlen(e_observer_reg); i++) {
@@ -104,7 +104,7 @@ void maple_unreg_e_observer_all(void) {
             hmdel(e_observer_reg, sig_id);
         }
     }
-    DLOG_LIMITED(50, u8"Removed %lld entity observer binding(s) of entity '%u'", removed, entity);
+    DLOG_LIMITED(10, u8"Removed %lld entity observer binding(s) of entity '%u'", removed, entity);
 }
 
 void signal_add_entity_observer_fn(Entity entity, SigId sig_id, E_ObserverFn e_fn) {
