@@ -58,7 +58,7 @@ typedef struct Application {
 	bool condition; // 运行条件
 } Application;
 
-DECLARE_INTERFACE(Application, ToString, app);
+DECLARE_INTERFACE(Application, ToString, app)
 
 #define APP_START(app_name, version, app_identifier, w_real, h_real, w_logic, h_logic) \
 int main(void) { \

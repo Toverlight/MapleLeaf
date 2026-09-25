@@ -144,12 +144,12 @@ void demo_single_query_system(void) {
         Q_WITH(Label)
         // ...
     );
-    Entity e = ...; // Suppose you have already get a specific entity 'e'
+    Entity e = ...; // Suppose you have already got a specific entity 'e'
     QUERY_INIT(&query);
     // !! EXEC is not for here, only for Normal Query.
     // Just get components you want to fetch from the specific entity.
     Q_GET_BEGIN(&query, e, target) // The last arg 'target' here is a new name of inner var to declare.
-        if (target) { // This check is necessary! Most of the time you want access target.
+        if (target) { // This check is necessary! Most of the time you want to access target.
             Transform* transform = (Transform*)Q_FETCH(&query, target, Transform);
             const Velocity* velocity = (Velocity*)Q_FETCH(&query, target, Velocity); // Optionally add const to limit it read-only
 
@@ -162,6 +162,119 @@ void demo_single_query_system(void) {
     QUERY_FREE(&query); // FREE operation must be paired with INIT!
 }
 ```
+
+### Component Custom
+
+*(For example of an engine-builtin component.)*
+
+**In header file:**
+
+```c
+// prefix 'transform'
+DECLARE_COMP_BEGIN(Transform)
+    f32 px;
+    f32 py;
+    f32 r; // in radian
+    f32 sx;
+    f32 sy;
+DECLARE_COMP_END(Transform)
+```
+
+**In source file:**
+
+```c
+IMPL_COMP(Transform)
+```
+
+### Resource Custom
+
+*(For example of an engine-builtin resource.)*
+
+**In header file:**
+
+```c
+DECLARE_RESOURCE_BEGIN(Res_TimeFixed)
+    u64 nspf;
+    f64 mspf;
+    f64 spf;
+DECLARE_RESOURCE_END(Res_TimeFixed)
+```
+
+**In source file:**
+
+```c
+IMPL_RESOURCE(Res_TimeFixed)
+```
+
+### Traits (Interfaces)
+
+Traits can be inplemented under any **struct** types.
+
+*(For example of engine-builtin components.)*
+
+#### Default
+
+**Just in header file:**
+
+```c
+DEFINE_INTERFACE_BEGIN(Transform, Default, transform)
+    transform_df.px = 0.0f;
+    transform_df.py = 0.0f;
+    transform_df.r = 0.0f;
+    transform_df.sx = 1.0f;
+    transform_df.sy = 1.0f;
+DEFINE_INTERFACE_END(Transform, Default, transform)
+```
+
+#### Serde
+
+**In header file:**
+
+```c
+DECLARE_INTERFACE(Transform, Serde, transform)
+```
+
+**In source file:**
+
+```c
+IMPL_INTERFACE_BEGIN(Transform, Serde, transform, Serialize)
+    SERIALIZE_FIELD_VALUE(px);
+    SERIALIZE_FIELD_VALUE(py);
+    SERIALIZE_FIELD_VALUE(r);
+    SERIALIZE_FIELD_VALUE(sx);
+    SERIALIZE_FIELD_VALUE(sy);
+IMPL_INTERFACE_END(Transform, Serde, transform, Serialize)
+
+IMPL_INTERFACE_BEGIN(Transform, Serde, transform, Deserialize)
+    DESERIALIZE_FIELD_VALUE(px);
+    DESERIALIZE_FIELD_VALUE(py);
+    DESERIALIZE_FIELD_VALUE(r);
+    DESERIALIZE_FIELD_VALUE(sx);
+    DESERIALIZE_FIELD_VALUE(sy);
+IMPL_INTERFACE_END(Transform, Serde, transform, Deserialize)
+```
+
+#### ToString
+
+**In header file:**
+
+```c
+DECLARE_INTERFACE(Application, ToString, app)
+```
+
+**In source file:**
+
+```c
+IMPL_INTERFACE_BEGIN(Application, ToString, app, ToString)
+    TOSTRING_ITEM(256, u8"Application: name '%s', version '%s', identifier '%s', ", app.name, app.version, app.app_identifier);
+    TOSTRING_ITEM(160, u8"real (width %d, height %d), logic (width %d, height %d).", app.w_real, app.h_real, app.w_logic, app.h_logic);
+    // ...
+IMPL_INTERFACE_END(Application, ToString, app, ToString)
+```
+
+#### Other Traits
+
+TODO: ...
 
 ### TODO: more api use examples...
 
