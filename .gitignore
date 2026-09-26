@@ -3,7 +3,6 @@ build/
 docs/*.dtmp
 docs/*.bkp
 docs/*.ps1
-docs/notes_export/
 
 thirdparty/*/*
 
