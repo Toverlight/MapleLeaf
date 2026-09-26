@@ -4,6 +4,8 @@
 
 ***NOTE:*** *The engine is still in early unstable development. Not all functions are guaranteed to operate properly.* ***Also***, *due to it's my personal work and the work is just for myself learning and showing(at least for a while), I don't guarantee the project progress.*
 
+(TODO: may I need a project LOGO?)
+
 ## Architecture
 
 I use the charts to clearly show my engine architecture:
@@ -29,6 +31,10 @@ TODO: Under actively development. Latest effect updated will be put here!
 ## My Past Game Engine Explorations
 
 My past explorations in games and game engines were full of hardships and obstacles. Many game demos and engines were redone halfway through. After a couple of years, I came up with organizing the work I had done in the past. And now there's the repository for collection, you can *see* ➡️ [**Toverlight's Engines & Games Exploration Collection**](https://github.com/Toverlight/game-engine-explorations)
+
+## Design Notes
+
+The notes (in a draft style somewhat) I wrote during the **design phase** before the engine code implementation started, you can see ➡️ [**一些工程实践**](docs/notes_export/一些工程实践.md)
 
 ## Use
 
